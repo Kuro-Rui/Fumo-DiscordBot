@@ -1,0 +1,9 @@
+# Ignored folders
+.venv
+__pycache__
+
+# Ignored files
+.DS_Store
+config.json
+*.log
+*.rdb

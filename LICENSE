@@ -672,3 +672,7 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
+
+This project bundles discord.ext.menus package (https://github.com/Rapptz/discord-ext-menus)
+made by Danny Y. (Rapptz) which is distributed under MIT License. Copy of this license
+can be found in LICENSE file in core/utils/menus folder of this repository.
