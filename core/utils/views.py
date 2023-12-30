@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 
 import discord
 
-from . import menus
+from .menus import ListPageSource
 from .. import commands
 
 __all__ = ("CloseButton", "FumoView", "MenuView")
@@ -50,14 +50,6 @@ class FumoView(discord.ui.View):
             pass
 
 
-class MenuViewPageSource(menus.ListPageSource):
-    def __init__(self, items: List[Any]) -> None:
-        super().__init__(items, per_page=1)
-
-    async def format_page(self, view: discord.ui.View, page: Any) -> Any:
-        return page
-
-
 class CloseButton(discord.ui.Button):
     def __init__(
         self,
@@ -96,7 +88,7 @@ class MenuView(FumoView):
     def __init__(self, pages: List[Any], page_start: int = 0, timeout: float = 180.0) -> None:
         super().__init__(timeout=timeout)
         self.current_page = page_start  # This will only be changed by the navigation buttons
-        self.source = MenuViewPageSource(pages)
+        self.source = ListPageSource(pages, per_page=1)
         self.max_pages = self.source.get_max_pages()
         self.clear_items()
 
@@ -140,16 +132,15 @@ class MenuView(FumoView):
         except IndexError:
             self.current_page = 0
             page = await self.source.get_page(self.current_page)
-        value = await self.source.format_page(self, page)
         self._update_button_labels()
 
         ret: Dict[str, Optional[str | discord.Embed]] = {"view": self}
-        if isinstance(value, dict):
-            ret.update(value)
-        elif isinstance(value, str):
-            ret.update({"content": value, "embed": None})
-        elif isinstance(value, discord.Embed):
-            ret.update({"embed": value, "content": None})
+        if isinstance(page, dict):
+            ret.update(page)
+        elif isinstance(page, str):
+            ret.update({"content": page, "embed": None})
+        elif isinstance(page, discord.Embed):
+            ret.update({"embed": page, "content": None})
         return ret
 
     async def start(
