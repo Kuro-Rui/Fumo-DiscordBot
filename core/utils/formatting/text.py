@@ -49,6 +49,6 @@ def format_perms(permissions: discord.Permissions, check: bool) -> str:
     for key, value in perms.items():
         if value != check:
             continue
-        key = key.replace("_", " ").capitalize()
-        perms_list.append(key.capitalize())
+        key = key.replace("_", " ")
+        perms_list.append(key.title())
     return format_items(perms_list)
