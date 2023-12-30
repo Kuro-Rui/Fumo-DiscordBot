@@ -1,12 +1,10 @@
-###############
 Fumo-DiscordBot
-###############
+===============
 
 A Discord bot made with discord.py inspired by high-quality plush Touhou Project character figures.
 
-************
 Self-Hosting
-************
+------------
 
 | I would rather you inviting the bot itself. However, if you want to self-host the bot, here's how to do it:
 | (*Keep in mind that some of these steps won't be explained properly since this bot is meant for personal use*)
@@ -25,9 +23,10 @@ Self-Hosting
 
 4. **Install the dependencies**
 
-    Run these commands on your terminal:
+    Make sure you're in your venv, then run these commands on your terminal:
 
     .. code-block:: bash
+
         pip install -U pip
         pip install -r requirements.txt
 
@@ -40,6 +39,7 @@ Self-Hosting
     Create a file named ``config.json`` in the project directory and fill it with the following:
 
     .. code-block:: json
+
         {
             "description": "",
             "embed_colour": "",
@@ -50,7 +50,7 @@ Self-Hosting
             "token": ""
         }
 
-    Replace the values with your own. Here are the descriptions for each values:
+    | Replace the values with your own. Here are the descriptions for each values:
     * **description**: The description of the bot. This is used for the bot's help menu.
     * **embed_colour**: The colour of the embeds.
     * **mobile**: Whether the bot will be on mobile status or not.
