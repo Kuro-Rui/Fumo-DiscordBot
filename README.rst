@@ -5,6 +5,12 @@ A Discord bot made with discord.py inspired by high-quality plush Touhou Project
 
 ----
 
+Invite the bot!
+---------------
+https://discord.com/oauth2/authorize?client_id=890596157699526686&scope=bot+applications.commands&permissions=274878286912
+
+----
+
 Self-Hosting
 ------------
 
@@ -70,6 +76,7 @@ Credits
 -------
 
 - `Cog-Creators <https://github.com/Cog-Creators>`_ for some methods (error handling, rich logging, and pagify) from `Red-DiscordBot <https://github.com/Cog-Creators/Red-DiscordBot>`_
+- `Draper <https://github.com/Drapersniper>`_ for the ANSI formatting helper from `PyLav <https://github.com/PyLav/PyLav>`_
 - `Danny <https://github.com/Rapptz>`_ for the amazing `discord.py <https://github.com/Rapptz/discord.py>`_ library
 - `Glas <https://github.com/DJTOMATO>`_ who helped me making the bot's Imgen cog
 - Whoever helped and supported me on Discord which I can't say one by one ❤️
