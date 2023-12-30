@@ -3,6 +3,8 @@ Fumo-DiscordBot
 
 A Discord bot made with discord.py inspired by high-quality plush Touhou Project character figures.
 
+----
+
 Self-Hosting
 ------------
 
@@ -62,7 +64,7 @@ Self-Hosting
     
     Make sure you're on your venv, then run ``python launcher.py`` on your terminal.
 
----
+----
 
 Credits
 -------
