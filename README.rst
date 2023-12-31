@@ -23,7 +23,7 @@ Self-Hosting
 
 2. **Download the repository**
 
-    You can either:
+    | You can either:
     - Install the repo as ZIP then unzip it, or
     - Run ``git clone https://github.com/Kuro-Rui/Fumo-DiscordBot`` on your terminal (which requires you to install `Git <https://git-scm.com/downloads>`_ first)
 
