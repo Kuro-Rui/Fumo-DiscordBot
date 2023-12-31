@@ -23,7 +23,7 @@ Self-Hosting
 
 2. **Make a Virtual Environment (Venv)**
 
-    Run ``python -m venv .venv`` in the project directory on your terminal (or whatever it's called on your OS)
+    Run ``python3.10 -m venv .venv`` in the project directory on your terminal (or whatever it's called on your OS)
 
 3. **Activate the Venv**
 
