@@ -1,7 +1,7 @@
 Fumo-DiscordBot
 ===============
 
-A Discord bot made with discord.py inspired by high-quality plush Touhou Project character figures.
+A Discord bot with fun commands made with discord.py inspired by high-quality plush Touhou Project character figures.
 
 ----
 
