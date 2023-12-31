@@ -21,15 +21,21 @@ Self-Hosting
 
     Install Python from https://www.python.org/downloads/
 
-2. **Make a Virtual Environment (Venv)**
+2. **Download the repository**
+
+    You can either:
+    - Install the repo as ZIP then unzip it, or
+    - Run ``git clone https://github.com/Kuro-Rui/Fumo-DiscordBot`` on your terminal (which requires you to install `Git <https://git-scm.com/downloads>`_ first)
+
+3. **Make a Virtual Environment (Venv)**
 
     Run ``python3.10 -m venv .venv`` in the project directory on your terminal (or whatever it's called on your OS)
 
-3. **Activate the Venv**
+4. **Activate the Venv**
 
     Run ``source .venv/bin/activate`` on your terminal
 
-4. **Install the dependencies**
+5. **Install the dependencies**
 
     Make sure you're in your venv, then run these commands on your terminal:
 
@@ -38,11 +44,11 @@ Self-Hosting
         pip install -U pip
         pip install -r requirements.txt
 
-5. **Install Redis**
+6. **Install Redis**
 
-6. **Start Redis server**
+7. **Start Redis server**
 
-7. **Create Configuration File**
+8. **Create Configuration File**
 
     Create a file named ``config.json`` in the project directory and fill it with the following:
 
@@ -66,7 +72,7 @@ Self-Hosting
     - **redis_uri**: The URI of the Redis database.
     - **token**: The bot's token.
 
-7. **Run the bot**
+9. **Run the bot**
     
     Make sure you're on your venv, then run ``python launcher.py`` on your terminal.
 
