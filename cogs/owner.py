@@ -72,7 +72,7 @@ class Owner(commands.Cog):
         await ctx.tick()
 
     @commands.is_owner()
-    @commands.group(aliases=["set"])
+    @commands.group(aliases=["set", "settings"], invoke_without_command=True)
     async def config(self, ctx: commands.Context):
         """Show the bot's config."""
         config = self.bot.config
@@ -89,15 +89,38 @@ class Owner(commands.Cog):
         await ctx.send(embed=embed)
 
     @config.command(name="description")
-    async def config_set(self, ctx: commands.Context, key: str, *, value: str):
+    async def config_description(self, ctx: commands.Context, *, value: str):
         """Set the bot's config."""
-        config_dict = self.bot.config.to_dict()
-        if not config_dict.get(key):
-            await ctx.cross()
-            await ctx.send(f"Invalid key `{key}`.")
+        self.bot.description = value
+        self.bot._config.description = value
+        await ctx.tick()
+
+    @config.command(name="embedcolour", aliases=["embedcolor", "colour", "color"])
+    async def config_embed_colour(self, ctx: commands.Context, *, value: discord.Colour):
+        """Set the bot's embed colour."""
+        self.bot._config.embed_colour = value
+        await ctx.tick()
+
+    @config.command(name="mobile")
+    async def config_mobile(self, ctx: commands.Context, *, value: bool):
+        """Set whether the bot should be on mobile status or not."""
+        if value == self.bot._config.mobile:
+            await ctx.tick()
             return
-        config_dict[key] = value
-        self.bot._config = type(self.bot.config)(**config_dict)
+        self.bot._config.mobile = value
+        await self.bot.monkeypatch_ws(mobile=value, reconnect=True)
+        await ctx.tick()
+
+    @config.command(name="permissions", aliases=["perms"])
+    async def config_permissions(self, ctx: commands.Context, *, value: int):
+        """Set the bot's permissions."""
+        self.bot._config.permissions = discord.Permissions(value)
+        await ctx.tick()
+
+    @config.command(name="prefix")
+    async def config_prefix(self, ctx: commands.Context, *, value: str):
+        """Set the bot's prefix."""
+        self.bot._config.prefix = value
         await ctx.tick()
 
 

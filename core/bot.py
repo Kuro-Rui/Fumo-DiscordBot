@@ -147,11 +147,6 @@ class FumoBot(commands.AutoShardedBot):
 
     async def process_commands(self, message: Message) -> None:
         author = message.author
-        if author.bot:
-            return
-        if self.is_blacklisted(author.id):
-            return
-
         if not await self.is_owner(author):
             bucket = self._cooldown.get_bucket(message)
             current = message.created_at.timestamp()
@@ -176,6 +171,10 @@ class FumoBot(commands.AutoShardedBot):
             await self.invoke(ctx)
 
     async def on_message(self, message: discord.Message) -> None:
+        if message.author.bot:
+            return
+        if self.is_blacklisted(message.author.id):
+            return
         await self.process_commands(message)
 
     async def _reload_help(self):
@@ -201,6 +200,8 @@ class FumoBot(commands.AutoShardedBot):
         self._config.save()
         log.info("Saving data to Redis...")
         self.loop.create_task(self._redis_save())
+        if not self.loop.is_running():
+            self.loop.run_until_complete(self._redis_save())
 
         log.info("Shutting down...")
         await self.session.close()

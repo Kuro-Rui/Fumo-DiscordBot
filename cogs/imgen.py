@@ -9,10 +9,10 @@ import discord
 from discord import app_commands
 from PIL import Image
 
-from cogs.utils.imgen.converters import Model, NemusonaFlags, Prompt
+from cogs.utils.imgen import Model, NemusonaFlags, Prompt, RegenerateButton
 from core import commands
 from core.bot import FumoBot
-from core.commands import Greedy
+from core.utils.views import FumoView
 
 
 class Imgen(commands.Cog):
@@ -29,7 +29,7 @@ class Imgen(commands.Cog):
         self,
         ctx: commands.Context,
         model: Model,
-        prompt: Greedy[Prompt],
+        prompt: commands.Greedy[Prompt],
         *,
         flags: NemusonaFlags,
     ):
@@ -46,25 +46,21 @@ class Imgen(commands.Cog):
 
         Powered by [Nemu's Waifu Generator](https://waifus.nemusona.com)
         """
+        prompt = " ".join(prompt)
         if not prompt:
             await ctx.reply("You need to provide a prompt.")
             return
-        result = await self.generate_ai_image(ctx, model, " ".join(prompt), flags)
+        result = await self.generate_ai_image(ctx, model, prompt, flags)
         if not result:
-            await ctx.reply(
-                "An error occurred while generating the image. Please try again later."
-            )
             return
-        view = discord.ui.View()
-        view.add_item(
-            discord.ui.Button(
-                style=discord.ButtonStyle.blurple, label=f"Seed: {result[1]}", disabled=True
-            )
-        )
+        seed, file = result
+        embed = discord.Embed(color=ctx.embed_color, title=f"Seed: {seed}")
+        view = FumoView(timeout=60.0)
+        view.add_item(RegenerateButton(self.bot, ctx.author, model, prompt, flags))
         view.add_item(
             discord.ui.Button(label="Nemu's Waifu Generator", url="https://waifus.nemusona.com")
         )
-        await ctx.reply(file=result[0], view=view)
+        await view.start(ctx, file=file, embed=embed)
 
     @generate.autocomplete("model")
     async def model_autocomplete(
@@ -89,8 +85,8 @@ class Imgen(commands.Cog):
         model: Literal["anything", "aom", "nemu"],
         prompt: str,
         flags: NemusonaFlags,
-    ) -> Optional[Tuple[discord.File, int]]:
-        ephemeral = not ctx.channel.is_nsfw()
+    ) -> Optional[Tuple[int, discord.File]]:
+        ephemeral = not (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.is_nsfw())
         async with ctx.typing(ephemeral=ephemeral):
             data = {
                 "prompt": prompt,
@@ -105,9 +101,10 @@ class Imgen(commands.Cog):
                 if response.status == 429:
                     await ctx.reply("Hit the rate limit. Please try again later.")
                     return
-                elif response.status == 503:
+                if response.status == 503:
                     await ctx.reply("Queue is full. Please try again later.")
-                elif response.status != 201:
+                    return
+                if response.status != 201:
                     await ctx.reply("Something went wrong. Please try again later.")
                     return
                 job_id = await response.text()
@@ -119,14 +116,14 @@ class Imgen(commands.Cog):
                     if response.status == 429:
                         await ctx.reply("Hit the rate limit. Please try again later.")
                         return
-                    elif response.status != 200:
+                    if response.status != 200:
                         await ctx.reply("Something went wrong. Please try again later.")
                         return
                     status = await response.text()
                     if status == "failed":
                         await ctx.reply("Something went wrong. Please try again later.")
                         return
-                    elif status == "completed":
+                    if status == "completed":
                         break
 
                     # 5 minutes ig
@@ -141,14 +138,14 @@ class Imgen(commands.Cog):
                 if response.status == 429:
                     await ctx.reply("Hit the rate limit. Please try again later.")
                     return
-                elif response.status != 200:
+                if response.status != 200:
                     await ctx.reply("Something went wrong. Please try again later.")
                     return
                 result = await response.json()
                 image = base64.b64decode(result["base64"])
             spoiler = not bool(ctx.interaction) and ephemeral
             file = discord.File(BytesIO(image), filename="image.png", spoiler=spoiler)
-            return file, result["seed"]
+            return result["seed"], file
 
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.user)

@@ -7,7 +7,7 @@ from rich import markup
 
 from .. import commands
 from ..utils.formatting import EightBitANSI, code, pagify, shorten, wrap
-from ..utils.views import CloseButton, FumoView, MenuView
+from ..utils.views import CloseButton, FumoView
 
 __all__ = ("FumoHelp",)
 
@@ -305,10 +305,10 @@ class FumoHelp(commands.HelpCommand):
             embed.title = f"Page {i} of {len(pages)}"
             embed.add_field(name="Subcommands", value=page, inline=False)
             embeds.append(embed)
-        view = MenuView(embeds)
+        view = await self.context.send_menu(embeds)
         await view.start(self.context, reply=True)
 
     async def send_command_help(self, command: commands.Command) -> None:
         embed = await self._make_command_help_embed(command)
-        view = MenuView([embed])
+        view = await self.context.send_menu([embed])
         await view.start(self.context, reply=True)

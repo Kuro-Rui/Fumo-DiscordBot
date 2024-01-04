@@ -14,7 +14,7 @@ class Context(commands.Context):
     bot: "FumoBot"
 
     @property
-    def embed_colour(self):
+    def embed_colour(self) -> discord.Colour:
         return self.bot.config.embed_colour
 
     embed_color = embed_colour
@@ -61,12 +61,11 @@ class Context(commands.Context):
         pages: List[Any],
         page_start: int = 0,
         timeout: float = 180.0,
-        reply: bool = False,
-        ephemeral: bool = False,
+        **kwargs,
     ):
         """Sends a menu."""
         view = MenuView(pages, page_start, timeout)
-        await view.start(self, reply=reply, ephemeral=ephemeral)
+        await view.start(self, **kwargs)
 
     async def react(
         self, emoji: discord.Emoji | discord.PartialEmoji | discord.Reaction | str
