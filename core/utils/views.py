@@ -115,6 +115,8 @@ class MenuView(FumoView):
     async def start(self, ctx: commands.Context, /, **kwargs) -> None:
         page = await self.get_page(self.current_page)
         kwargs.update(page)
+        if kwargs.get("ephemeral"):
+            self.remove_item(self.close_button)
         return await super().start(ctx, **kwargs)
 
     async def get_page(self, page_number: int) -> Dict[str, Optional[Any]]:
