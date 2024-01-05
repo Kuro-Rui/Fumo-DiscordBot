@@ -44,6 +44,8 @@ class FumoView(discord.ui.View):
     async def on_timeout(self) -> None:
         try:
             for child in self.children:
+                if getattr(child, "style", None) == discord.ButtonStyle.link:
+                    continue
                 child.disabled = True
             await self.message.edit(view=self)
         except discord.HTTPException:
