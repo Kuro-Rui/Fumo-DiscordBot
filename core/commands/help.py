@@ -1,8 +1,8 @@
 import re
 from typing import Dict, Iterable, List, Mapping, Optional
 
-import humanize
 import discord
+import humanize
 from rich import markup
 
 from .. import commands

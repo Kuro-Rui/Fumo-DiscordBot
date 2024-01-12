@@ -2,8 +2,8 @@ from typing import Any, Dict, List, Optional
 
 import discord
 
-from .menus import ListPageSource
 from .. import commands
+from .menus import ListPageSource
 
 __all__ = ("CloseButton", "FumoView", "MenuView")
 

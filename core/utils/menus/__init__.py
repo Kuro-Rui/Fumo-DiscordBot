@@ -25,13 +25,13 @@ DEALINGS IN THE SOFTWARE.
 """
 
 import asyncio
-import discord
-
-import itertools
 import inspect
+import itertools
 import logging
 import re
 from collections import OrderedDict, namedtuple
+
+import discord
 
 __version__ = "1.0.0-a"
 
@@ -348,7 +348,7 @@ class Menu(metaclass=_MenuMeta):
         delete_message_after=False,
         clear_reactions_after=False,
         check_embeds=False,
-        message=None
+        message=None,
     ):
         self.timeout = timeout
         self.delete_message_after = delete_message_after

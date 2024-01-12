@@ -4,8 +4,10 @@ from io import BytesIO
 from typing import Literal, Optional, Tuple
 
 import discord
+
 from core.bot import FumoBot
 from core.utils.views import FumoView
+
 from .converters import NemusonaFlags
 
 
@@ -83,11 +85,15 @@ class RegenerateButton(discord.ui.Button):
                     await interaction.followup.send("Hit the rate limit. Please try again later.")
                     return
                 if response.status != 200:
-                    await interaction.followup.send("Something went wrong. Please try again later.")
+                    await interaction.followup.send(
+                        "Something went wrong. Please try again later."
+                    )
                     return
                 status = await response.text()
                 if status == "failed":
-                    await interaction.followup.send("Something went wrong. Please try again later.")
+                    await interaction.followup.send(
+                        "Something went wrong. Please try again later."
+                    )
                     return
                 if status == "completed":
                     break
