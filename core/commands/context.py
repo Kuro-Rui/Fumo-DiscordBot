@@ -1,9 +1,10 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import discord
 from discord.ext import commands
 
-from ..bot import FumoBot
+if TYPE_CHECKING:
+    from ..bot import FumoBot
 from ..utils.views import MenuView
 
 

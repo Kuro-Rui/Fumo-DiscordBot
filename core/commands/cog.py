@@ -12,7 +12,7 @@ __all__ = ("Cog",)
 class Cog(commands.Cog):
     """A custom subclass of `commands.Cog`."""
 
-    def __init__(self, bot: "FumoBot") -> None:
+    def __init__(self, bot: FumoBot) -> None:
         self._log = logging.getLogger(f"fumo.cogs.{self.qualified_name.lower()}")
         self.bot = bot
         super().__init__()
