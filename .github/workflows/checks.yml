@@ -7,11 +7,9 @@ jobs:
     name: Checks
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 3
       matrix:
-        linter:
-          - black
-          - isort
-          - ruff
+        linter: [black, isort, ruff]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
