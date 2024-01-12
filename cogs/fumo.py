@@ -22,7 +22,7 @@ class Fumo(commands.Cog):
     def display_emoji(self) -> discord.PartialEmoji:
         return discord.PartialEmoji(name="Cirno", id=935836292653146123)
 
-    async def fetch_fumos(self, *, raise_for_status: bool = False) -> None:
+    async def fetch_fumos(self) -> None:
         async with self.bot.session.get(
             "https://raw.githubusercontent.com/Kuro-Rui/Kuro-Cogs/main/fumo/data/fumos.json"
         ) as response:
@@ -72,11 +72,7 @@ class Fumo(commands.Cog):
         self, content_type: Literal["Image", "GIF", "Video", "FUMO FRIDAY"] = None
     ) -> list[str]:
         if not self.fumos:
-            try:
-                await self.fetch_fumos(raise_for_status=True)
-            except aiohttp.ClientResponseError as exc_info:
-                self._log.exception("Failed to fetch Fumos", exc_info=exc_info)
-                return []
+            await self.fetch_fumos()
         if not content_type:
             fumos = self.fumos["Image"] + self.fumos["GIF"] + self.fumos["Video"]
             if self.is_friday():
