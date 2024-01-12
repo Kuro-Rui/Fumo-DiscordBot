@@ -10,18 +10,26 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 3
+      max-parallel: 9
       matrix:
-        python_version: ["3.10", "3.11", "3.12"]
-    name: Python ${{ matrix.python_version }}
+        python-version: ["3.10", "3.11", "3.12"]
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            os-name: Windows
+          - os: macos-latest
+            os-name: MacOS
+          - os: ubuntu-latest
+            os-name: Ubuntu
+    name: ${{ matrix.os-name }} - Python ${{ matrix.python-version }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           ref: ${{ env.ref }}
-      - name: Setup Python ${{ matrix.python_version }}
+      - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python_version }}
+          python-version: ${{ matrix.python-version }}
       - name: Compile
         run: python -m compileall .
