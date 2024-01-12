@@ -1,7 +1,7 @@
 import json
 import random
-from typing import Literal
 from datetime import datetime
+from typing import Literal
 
 import aiohttp
 import discord

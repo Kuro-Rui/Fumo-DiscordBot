@@ -119,7 +119,9 @@ class FumoBot(commands.AutoShardedBot):
     def is_blacklisted(self, user_id: int) -> bool:
         return user_id in self._blacklist
 
-    async def get_context(self, origin: discord.Interaction | discord.Message, / , *, cls = commands.Context) -> commands.Context:
+    async def get_context(
+        self, origin: discord.Interaction | discord.Message, /, *, cls=commands.Context
+    ) -> commands.Context:
         return await super().get_context(origin, cls=cls)
 
     async def before_invoke_hook(self, ctx: commands.Context) -> None:
