@@ -1,7 +1,7 @@
 import json
 import random
+from typing import Literal
 from datetime import datetime
-from typing import Dict, List, Literal
 
 import aiohttp
 import discord
@@ -14,16 +14,22 @@ class Fumo(commands.Cog):
     """Get random Fumos."""
 
     def __init__(self, bot: FumoBot):
-        self.fumos: Dict[str, List[str]] = {}
+        self.fumos: dict[str, list[str]] = {}
         self.is_friday = lambda: datetime.today().weekday() == 4
-        super().__init__(bot, discord.PartialEmoji(name="Cirno", id=935836292653146123))
+        super().__init__(bot)
+
+    @property
+    def display_emoji(self) -> discord.PartialEmoji:
+        return discord.PartialEmoji(name="Cirno", id=935836292653146123)
 
     async def fetch_fumos(self, *, raise_for_status: bool = False) -> None:
         async with self.bot.session.get(
             "https://raw.githubusercontent.com/Kuro-Rui/Kuro-Cogs/main/fumo/data/fumos.json"
         ) as response:
-            if raise_for_status:
+            try:
                 response.raise_for_status()
+            except aiohttp.ClientResponseError as exc_info:
+                self._log.exception("Failed to fetch Fumos", exc_info=exc_info)
             self.fumos = json.loads(await response.text())
         self._log.info("Successfully fetched %d Fumos.", sum(len(l) for l in self.fumos.values()))
 
@@ -64,7 +70,7 @@ class Fumo(commands.Cog):
 
     async def get_fumos(
         self, content_type: Literal["Image", "GIF", "Video", "FUMO FRIDAY"] = None
-    ) -> List[str]:
+    ) -> list[str]:
         if not self.fumos:
             try:
                 await self.fetch_fumos(raise_for_status=True)

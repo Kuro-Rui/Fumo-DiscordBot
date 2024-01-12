@@ -4,7 +4,7 @@ import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Any, FrozenSet, Optional, Set
+from typing import Any, Coroutine
 
 import aiohttp
 import discord
@@ -39,12 +39,12 @@ class FumoBot(commands.AutoShardedBot):
             allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=False),
         )
 
-        self._checked_time_accuracy: Optional[datetime] = None
-        self._last_exception: Optional[str] = None
-        self._old_identify = None
-        self._uptime: Optional[datetime] = None
+        self._checked_time_accuracy: datetime | None = None
+        self._last_exception: str | None = None
+        self._old_identify: Coroutine[Any, Any, None] | None = None
+        self._uptime: datetime | None = None
 
-        self._blacklist: Set[int] = set()
+        self._blacklist: set[int] = set()
         self._cooldown = commands.CooldownMapping.from_cooldown(10, 15, commands.BucketType.user)
         self._spam_count = Counter()
 
@@ -113,15 +113,13 @@ class FumoBot(commands.AutoShardedBot):
         self._blacklist.remove(user_id)
 
     @property
-    def blacklist(self) -> FrozenSet[int]:
+    def blacklist(self) -> frozenset[int]:
         return frozenset(self._blacklist)
 
     def is_blacklisted(self, user_id: int) -> bool:
         return user_id in self._blacklist
 
-    async def get_context(
-        self, origin: discord.Interaction | discord.Message, /, *, cls=commands.Context
-    ) -> commands.Context:
+    async def get_context(self, origin: discord.Interaction | discord.Message, / , *, cls = commands.Context) -> commands.Context:
         return await super().get_context(origin, cls=cls)
 
     async def before_invoke_hook(self, ctx: commands.Context) -> None:

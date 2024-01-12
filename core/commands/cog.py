@@ -1,12 +1,10 @@
 import inspect
 import logging
-from typing import TYPE_CHECKING, Dict, Optional
 
 import discord
 from discord.ext import commands
 
-if TYPE_CHECKING:
-    from ..bot import FumoBot
+from ..bot import FumoBot
 
 __all__ = ("Cog",)
 
@@ -14,11 +12,14 @@ __all__ = ("Cog",)
 class Cog(commands.Cog):
     """A custom subclass of `commands.Cog`."""
 
-    def __init__(self, bot: "FumoBot", emoji: str | discord.Emoji | discord.PartialEmoji) -> None:
+    def __init__(self, bot: "FumoBot") -> None:
         self._log = logging.getLogger(f"fumo.cogs.{self.qualified_name.lower()}")
         self.bot = bot
-        self.emoji = emoji
         super().__init__()
+
+    @property
+    def display_emoji(self) -> str | discord.Emoji | discord.PartialEmoji:
+        raise NotImplementedError()
 
     def cog_load(self) -> None:
         self._log.info("Loaded %s", self.qualified_name)
@@ -27,11 +28,11 @@ class Cog(commands.Cog):
         self._log.info("Unloaded %s", self.qualified_name)
 
     @property
-    def help(self) -> Optional[str]:
+    def help(self) -> str | None:
         doc = self.__doc__
         if doc:
             return inspect.cleandoc(doc)
 
     @property
-    def all_commands(self) -> Dict[str, commands.Command]:
-        return {cmd.qualified_name: cmd for cmd in self.__cog_commands__}
+    def all_commands(self) -> dict[str, commands.Command]:
+        return {cmd.name: cmd for cmd in self.__cog_commands__}

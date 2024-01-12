@@ -62,7 +62,7 @@ def init_events(bot: "FumoBot"):
         try:
             if bot._uptime is not None:
                 return
-            bot._uptime = datetime.utcnow()
+            bot._uptime = datetime.now(tz=timezone.utc)
             log.info("Loaded %d cogs with %d commands", len(bot.cogs), len(bot.commands))
             rich_console = rich.get_console()
             rich_console.print(INTRO, style="bright_red", markup=False, highlight=False)

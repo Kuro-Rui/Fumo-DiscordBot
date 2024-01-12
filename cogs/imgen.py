@@ -3,13 +3,13 @@ import base64
 import functools
 from io import BytesIO
 from pathlib import Path
-from typing import List, Literal, Optional, Tuple
+from typing import Literal
 
 import discord
 from discord import app_commands
 from PIL import Image
 
-from cogs.utils.imgen import Model, NemusonaFlags, Prompt, RegenerateButton
+from cogs.utils.imgen import NEMU_BUTTON, Model, NemusonaFlags, Prompt, RegenerateButton
 from core import commands
 from core.bot import FumoBot
 from core.utils.views import FumoView
@@ -19,7 +19,11 @@ class Imgen(commands.Cog):
     """Generate images."""
 
     def __init__(self, bot: FumoBot):
-        super().__init__(bot, discord.PartialEmoji(name="Sakuya", id=935836224483115048))
+        super().__init__(bot)
+
+    @property
+    def display_emoji(self) -> discord.PartialEmoji:
+        return discord.PartialEmoji(name="Sakuya", id=935836224483115048)
 
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(1, commands.BucketType.user)
@@ -39,10 +43,10 @@ class Imgen(commands.Cog):
         The model can be either `Anything`, `AOM`, or `Nemu`.
 
         **Flags**
-        - `--negative` - What you don't want the bot to include, defaults to nothing.
-        - `--cfgscale` - The CFG scale (0 - 20), defaults to 10.
-        - `--denoisestrength` - The denoise strength (0.0 - 1.0), defaults to 0.5.
-        - `--seed` - The seed to use.
+        - `--negative`: What you don't want the bot to include, defaults to nothing.
+        - `--cfgscale`: The CFG scale (0 - 20), defaults to 10.
+        - `--denoisestrength`: The denoise strength (0.0 - 1.0), defaults to 0.5.
+        - `--seed`: The seed to use.
 
         Powered by [Nemu's Waifu Generator](https://waifus.nemusona.com)
         """
@@ -56,16 +60,15 @@ class Imgen(commands.Cog):
         seed, file = result
         embed = discord.Embed(color=ctx.embed_color, title=f"Seed: {seed}")
         view = FumoView(timeout=60.0)
-        view.add_item(RegenerateButton(self.bot, ctx.author, model, prompt, flags))
-        view.add_item(
-            discord.ui.Button(label="Nemu's Waifu Generator", url="https://waifus.nemusona.com")
-        )
-        await view.start(ctx, file=file, embed=embed)
+        view.add_item(RegenerateButton(self.bot, model, prompt, flags))
+        view.add_item(NEMU_BUTTON)
+        view.author = ctx.author
+        view.message = await ctx.reply(file=file, embed=embed, view=view)
 
     @generate.autocomplete("model")
     async def model_autocomplete(
         self, interaction: discord.Interaction, current: str
-    ) -> List[app_commands.Choice[str]]:
+    ) -> list[app_commands.Choice[str]]:
         if self.bot.is_blacklisted(interaction.user.id):
             return []
 
@@ -85,7 +88,7 @@ class Imgen(commands.Cog):
         model: Literal["anything", "aom", "nemu"],
         prompt: str,
         flags: NemusonaFlags,
-    ) -> Optional[Tuple[int, discord.File]]:
+    ) -> tuple[int, discord.File] | None:
         ephemeral = not (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.is_nsfw())
         async with ctx.typing(ephemeral=ephemeral):
             data = {
@@ -270,7 +273,7 @@ class Imgen(commands.Cog):
         fp.close()
         return file
 
-    async def make_image(self, task: functools.partial) -> Optional[discord.File]:
+    async def make_image(self, task: functools.partial) -> discord.File | None:
         task = self.bot.loop.run_in_executor(None, task)
         try:
             image = await asyncio.wait_for(task, timeout=60)

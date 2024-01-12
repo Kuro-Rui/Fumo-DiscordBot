@@ -3,12 +3,28 @@ from io import BytesIO
 
 import discord
 import jishaku
-from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.features.baseclass import Feature
+from jishaku.features.filesystem import FilesystemFeature
+from jishaku.features.guild import GuildFeature
+from jishaku.features.invocation import InvocationFeature
+from jishaku.features.management import ManagementFeature  # Might remove this later
+from jishaku.features.python import PythonFeature
+from jishaku.features.root_command import RootCommand
+from jishaku.features.shell import ShellFeature
 
 from core import commands
 from core.bot import FumoBot
 from core.utils.views import CloseButton, FumoView
+
+Features = (
+    FilesystemFeature,
+    GuildFeature,
+    InvocationFeature,
+    ManagementFeature,
+    PythonFeature,
+    RootCommand,
+    ShellFeature,
+)
 
 jishaku.Flags.RETAIN = True
 jishaku.Flags.NO_UNDERSCORE = True
@@ -17,11 +33,14 @@ jishaku.Flags.NO_DM_TRACEBACK = True
 jishaku.Flags.USE_ANSI_ALWAYS = True
 
 
-class Jishaku(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
+class Jishaku(*Features):
     """The Jishaku debug and diagnostic commands."""
 
     _log = logging.getLogger("fumo.cogs.jishaku")
-    emoji = discord.PartialEmoji(name="Jishaku", id=1174195607997521960)
+
+    @property
+    def display_emoji(self) -> discord.PartialEmoji:
+        return discord.PartialEmoji(name="Jishaku", id=1174195607997521960)
 
     def cog_load(self) -> None:
         self._log.info("Loaded %s", self.qualified_name)

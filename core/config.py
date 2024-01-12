@@ -16,19 +16,19 @@ class Config:
 
     Attributes
     ----------
-    description: str
+    description: :class:`str`
         The bot's description.
-    embed_colour: discord.Colour
+    embed_colour: :class:`discord.Colour`
         The bot's embed colour.
-    mobile: bool
+    mobile: :class:`bool`
         Whether to use mobile status.
-    permissions: discord.Permissions
+    permissions: :class:`discord.Permissions`
         The bot's permissions.
-    prefix: str
+    prefix: :class:`str`
         The bot's prefix.
-    redis_uri: str
+    redis_uri: :class:`str`
         The Redis URI.
-    token: str
+    token: :class:`str`
         The bot's token.
     """
 

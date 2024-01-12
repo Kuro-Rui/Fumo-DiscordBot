@@ -21,16 +21,18 @@ class Prompt(commands.Converter):
 
 class NemusonaFlags(commands.FlagConverter, case_insensitive=True, prefix="--", delimiter=" "):
     negative: str = commands.flag(
-        default="", description="What you don't want the bot to include."
+        aliases=["n"], default="", description="What you don't want the bot to include."
     )
     cfg_scale: int = commands.flag(
         name="cfgscale",
+        aliases=["cfgs", "cs"],
         default=10,
         converter=commands.Range[int, 0, 20],
         description="The CFG scale.",
     )
     denoise_strength: float = commands.flag(
         name="denoisestrength",
+        aliases=["denoisingstrength", "ds"],
         default=0.5,
         converter=commands.Range[float, 0.0, 1.0],
         description="The denoise strength.",

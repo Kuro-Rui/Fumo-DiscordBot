@@ -1,15 +1,26 @@
+import traceback
+from io import StringIO
+from typing import Iterable, List
+
 import discord
+from discord.app_commands import Command, ContextMenu, Group
+from rich.console import Console
+from rich.tree import Tree
 
 from core import commands
 from core.bot import FumoBot
-from core.utils.formatting import format_perms, pagify
+from core.utils.formatting import code, format_items, format_perms, pagify, wrap
 
 
 class Owner(commands.Cog):
     """Owner-only commands."""
 
     def __init__(self, bot: FumoBot):
-        super().__init__(bot, discord.PartialEmoji(name="RemiliaSmile", id=1189592920379105330))
+        super().__init__(bot)
+
+    @property
+    def display_emoji(self) -> discord.PartialEmoji:
+        return discord.PartialEmoji(name="RemiliaSmile", id=1189592920379105330)
 
     @commands.is_owner()
     @commands.group(aliases=["bl"], invoke_without_command=True)
@@ -38,7 +49,7 @@ class Owner(commands.Cog):
             embed = embed.copy()
             embed.description = page
             embeds.append(embed)
-        await ctx.send_menu(embeds, reply=True)
+        await ctx.send_menu(embeds)
 
     @blacklist.command(name="add")
     async def blacklist_add(self, ctx: commands.Context, *users: discord.User):
@@ -70,6 +81,96 @@ class Owner(commands.Cog):
             await ctx.send("Provided users aren't blacklisted.")
             return
         await ctx.tick()
+
+    @commands.is_owner()
+    @commands.group(
+        name="commands", aliases=["command", "cmds", "cmd"], invoke_without_command=True
+    )
+    async def _commands(self, ctx: commands.Context):
+        """Commands management."""
+        pass
+
+    @_commands.command(name="list")
+    async def commands_list(self, ctx: commands.Context):
+        """List all commands."""
+        tree = Tree("Commands", style="underline green")
+        for cog in self.bot.cogs.values():
+            branch = tree.add(cog.qualified_name, style="not underline bold red")
+            self._rich_walk_commands(sorted(cog.get_commands(), key=lambda c: c.name), branch)
+        self._rich_walk_commands(self.bot.commands, tree)
+        console = Console(
+            color_system="standard",
+            file=StringIO(),
+            force_terminal=True,
+            force_interactive=False,
+            width=50,
+        )
+        console.print(tree)
+        embed = discord.Embed(
+            color=ctx.embed_color, description=code(console.file.getvalue(), "ansi")
+        )
+        embed.set_author(name=ctx.me.name, icon_url=ctx.me.avatar.url)
+        await ctx.send(embed=embed)
+
+    @commands.is_owner()
+    @_commands.group(name="slash", invoke_without_command=True)
+    async def commands_slash(self, ctx: commands.Context):
+        """Slash commands management."""
+        pass
+
+    @commands_slash.command(name="list")
+    async def commands_slash_list(self, ctx: commands.Context):
+        """List all slash commands and context menus."""
+        app_commands = self.bot.tree.get_commands(type=discord.AppCommandType.chat_input)
+        message_contexts = self.bot.tree.get_commands(type=discord.AppCommandType.message)
+        user_contexts = self.bot.tree.get_commands(type=discord.AppCommandType.user)
+        sorted_app_commands = (
+            sorted(app_commands, key=lambda c: c.name)
+            + sorted(message_contexts, key=lambda c: c.name)
+            + sorted(user_contexts, key=lambda c: c.name)
+        )
+        tree = Tree("Slash Commands and Context Menus", style="underline green")
+        self._rich_walk_app_commands(sorted_app_commands, tree)
+        console = Console(
+            color_system="standard",
+            file=StringIO(),
+            force_terminal=True,
+            force_interactive=False,
+            width=50,
+        )
+        console.print(tree)
+        embed = discord.Embed(
+            color=ctx.embed_color, description=code(console.file.getvalue(), "ansi")
+        )
+        embed.set_author(name=ctx.me.name, icon_url=ctx.me.avatar.url)
+        await ctx.send(embed=embed)
+
+    def _rich_walk_commands(
+        self, cmds: Iterable[commands.Command | commands.Group], tree: Tree
+    ) -> None:
+        for cmd in cmds:
+            if isinstance(cmd, commands.Group):
+                branch = tree.add(cmd.name, style="not underline bold yellow")
+                self._rich_walk_commands(sorted(cmd.commands, key=lambda c: c.name), branch)
+            elif isinstance(cmd, commands.Command):
+                tree.add(cmd.name, style="not underline bold white")
+
+    def _rich_walk_app_commands(
+        self, app_commands: List[Command | Group | ContextMenu], tree: Tree
+    ) -> None:
+        for app_command in app_commands:
+            if isinstance(app_command, discord.app_commands.Group):
+                branch = tree.add(app_command.name, style="not underline bold yellow")
+                self._rich_walk_app_commands(
+                    sorted(app_command.commands, key=lambda c: c.name), branch
+                )
+            elif isinstance(app_command, discord.app_commands.Command):
+                tree.add(app_command.name, style="not bold white")
+            elif isinstance(app_command, discord.app_commands.ContextMenu):
+                if app_command.type == discord.AppCommandType.user:
+                    tree.add(f"{app_command.name} (User)", style="not underline bold magenta")
+                elif app_command.type == discord.AppCommandType.message:
+                    tree.add(f"{app_command.name} (Message)", style="not underline bold blue")
 
     @commands.is_owner()
     @commands.group(aliases=["set", "settings"], invoke_without_command=True)
@@ -122,6 +223,73 @@ class Owner(commands.Cog):
         """Set the bot's prefix."""
         self.bot._config.prefix = value
         await ctx.tick()
+
+    @commands.is_owner()
+    @commands.command(name="load", aliases=["reload"])
+    async def load(self, ctx: commands.Context, *cogs: str):
+        """Load or reload cogs."""
+        cmd = ctx.invoked_with
+        methods = {
+            "load": self.bot.load_extension,
+            "reload": self.bot.reload_extension,
+        }
+        errors = commands.Paginator(prefix="```py", max_size=1900)
+        success = []
+        failed = []
+        for cog in cogs:
+            try:
+                await methods[cmd](f"cogs.{cog}")
+            except Exception as e:
+                failed.append(cog)
+                cause = e.__cause__ if e.__cause__ else e
+                errors.add_line(
+                    "".join(traceback.format_exception(type(cause), cause, cause.__traceback__))
+                )
+            else:
+                success.append(cog)
+
+        pages = []
+        if success:
+            pages.append(f"Successfully {cmd}ed {format_items([wrap(c, '`') for c in success])}\n")
+        if failed:
+            pages.append(f"Failed to {cmd} {format_items([wrap(c, '`') for c in failed])}\n")
+            pages.extend(errors.pages)
+        if len(pages) == 1:
+            await ctx.send(pages[0])
+        else:
+            await ctx.send_menu(pages)
+
+    @commands.is_owner()
+    @commands.command(name="unload")
+    async def unload(self, ctx: commands.Context, *cogs: str):
+        """Unload cogs."""
+        errors = commands.Paginator(prefix="```py", max_size=1900)
+        success = []
+        failed = []
+        for cog in cogs:
+            try:
+                await self.bot.unload_extension(f"cogs.{cog}")
+            except Exception as e:
+                failed.append(cog)
+                cause = e.__cause__ if e.__cause__ else e
+                errors.add_line(
+                    "".join(traceback.format_exception(type(cause), cause, cause.__traceback__))
+                )
+            else:
+                success.append(cog)
+
+        pages = []
+        if success:
+            pages.append(
+                f"Successfully unloaded {format_items([wrap(c, '`') for c in success])}.\n"
+            )
+        if failed:
+            pages.append(f"Failed to unload {format_items([wrap(c, '`') for c in failed])}\n")
+            pages.extend(errors.pages)
+        if len(pages) == 1:
+            await ctx.send(pages[0])
+        else:
+            await ctx.send_menu(pages)
 
 
 async def setup(bot: FumoBot):

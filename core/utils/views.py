@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import discord
 
@@ -20,15 +20,18 @@ MENU_EMOJIS = {
 class FumoView(discord.ui.View):
     """Custom view for FumoBot."""
 
-    def __init__(self, *, timeout: Optional[float] = 180.0):
+    def __init__(self, *, timeout: float = 180.0):
         super().__init__(timeout=timeout)
 
-        self.author: Optional[discord.abc.User] = None
-        self.message: Optional[discord.Message] = None
+        self.author: discord.abc.User | None = None
+        self.message: discord.Message | None = None
 
-    async def start(self, ctx: commands.Context, /, **kwargs) -> discord.Message:
+    async def start(
+        self, ctx: commands.Context, /, content: str = None, **kwargs
+    ) -> discord.Message:
+        kwargs["view"] = self
         self.author = ctx.author
-        self.message = await ctx.send(view=self, **kwargs)
+        self.message = await ctx.send(content, **kwargs)
         return self.message
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -56,8 +59,8 @@ class FumoView(discord.ui.View):
 class CloseButton(discord.ui.Button):
     def __init__(
         self,
-        emoji: str | discord.Emoji | discord.PartialEmoji = MENU_EMOJIS["close"],
-        label: Optional[str] = "Close",
+        emoji: str | discord.Emoji | discord.PartialEmoji | None = MENU_EMOJIS["close"],
+        label: str | None = "Close",
         style: discord.ButtonStyle = discord.ButtonStyle.red,
     ):
         super().__init__(style=style, label=label, emoji=emoji)
@@ -73,7 +76,7 @@ class CloseButton(discord.ui.Button):
 class MenuViewJumpModal(discord.ui.Modal):
     def __init__(self, max_pages: int) -> None:
         super().__init__(title="Go to Page...")
-        self.interaction: Optional[discord.Interaction] = None
+        self.interaction: discord.Interaction | None = None
         self.page_input = discord.ui.TextInput(
             label=f"Page Number (1-{max_pages})",
             placeholder=f"Enter a number between 1 and {max_pages}",
@@ -88,9 +91,9 @@ class MenuViewJumpModal(discord.ui.Modal):
 
 
 class MenuView(FumoView):
-    def __init__(self, pages: List[Any], page_start: int = 0, *, timeout: float = 180.0) -> None:
+    def __init__(self, pages: list[Any], page_start: int = 0, *, timeout: float = 180.0) -> None:
         super().__init__(timeout=timeout)
-        self.current_page = page_start  # This will only be changed by the navigation buttons
+        self.current_page = page_start
         # Using this is ok since we are not using ListPageSource.format_page
         self.source = ListPageSource(pages, per_page=1)
         self.max_pages = self.source.get_max_pages()
@@ -106,66 +109,63 @@ class MenuView(FumoView):
             self.add_item(self.last_button)
             if self.max_pages > 3:
                 # It's no use to have a goto button if there's only 3 pages
-                # To go to page 2, you can just click the next button
-                # To go to page 3, you can just click the last button
-                # And vice versa to go to previous pages.
+                # To go to page 2/3 you can just click the next/last button, vice versa
                 self.add_item(self.goto_button)
             self.add_item(self.close_button)
         else:
             self.add_item(self.close_button)
 
-    async def start(self, ctx: commands.Context, /, **kwargs) -> None:
-        page = await self.get_page(self.current_page)
-        kwargs.update(page)
-        if kwargs.get("ephemeral"):
+    async def start(self, ctx: commands.Context, /, *, ephemeral: bool = False) -> discord.Message:
+        kwargs = await self.get_page(self.current_page)
+        if ephemeral:
             self.remove_item(self.close_button)
-        return await super().start(ctx, **kwargs)
+        return await super().start(ctx, ephemeral=ephemeral, **kwargs)
 
-    async def get_page(self, page_number: int) -> Dict[str, Optional[Any]]:
+    async def get_page(self, page_number: int) -> dict[str, Any | None]:
         try:
             page = await self.source.get_page(page_number)
         except IndexError:
             self.current_page = 0
             page = await self.source.get_page(self.current_page)
-        self._update_button_labels()
+        self._update_buttons()
 
-        ret: Dict[str, Optional[str | discord.Embed]] = {"view": self}
         if isinstance(page, dict):
-            ret.update(page)
-        elif isinstance(page, str):
-            ret.update({"content": page, "embed": None})
-        elif isinstance(page, discord.Embed):
-            ret.update({"embed": page, "content": None})
-        return ret
+            return page
+        if isinstance(page, str):
+            return {"content": page, "embed": None}
+        if isinstance(page, discord.Embed):
+            return {"content": None, "embed": page}
 
-    def _update_button_labels(self) -> None:
-        self.first_button.disabled = self.current_page == 0
+    def _update_buttons(self) -> None:
+        self.first_button.disabled = False
         self.previous_button.disabled = False
         self.previous_button.label = f"{self.current_page} \u200b {MENU_EMOJIS['previous']}"
         if self.current_page == 0:
+            self.first_button.disabled = True
             self.previous_button.disabled = True
             self.previous_button.label = f"... \u200b {MENU_EMOJIS['previous']}"
         self.current_button.label = str(self.current_page + 1)
         self.next_button.disabled = False
         self.next_button.label = f"{MENU_EMOJIS['next']} \u200b {self.current_page + 2}"
+        self.last_button.disabled = False
         if self.current_page + 1 >= self.max_pages:
             self.next_button.disabled = True
             self.next_button.label = f"{MENU_EMOJIS['next']} \u200b ..."
-        self.last_button.disabled = self.current_page + 1 >= self.max_pages
+            self.last_button.disabled = True
 
     @discord.ui.button(label=f"1 \u200b {MENU_EMOJIS['first']}")
     async def first_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Go to the first page."""
         self.current_page = 0
         kwargs = await self.get_page(self.current_page)
-        await interaction.response.edit_message(**kwargs)
+        await interaction.response.edit_message(view=self, **kwargs)
 
     @discord.ui.button(label=MENU_EMOJIS["previous"], style=discord.ButtonStyle.blurple)
     async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Go to the previous page."""
         self.current_page -= 1
         kwargs = await self.get_page(self.current_page)
-        await interaction.response.edit_message(**kwargs)
+        await interaction.response.edit_message(view=self, **kwargs)
 
     @discord.ui.button(disabled=True, style=discord.ButtonStyle.green)
     async def current_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -177,14 +177,14 @@ class MenuView(FumoView):
         """Go to the next page."""
         self.current_page += 1
         kwargs = await self.get_page(self.current_page)
-        await interaction.response.edit_message(**kwargs)
+        await interaction.response.edit_message(view=self, **kwargs)
 
     @discord.ui.button(label=MENU_EMOJIS["last"])
     async def last_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Go to the last page."""
         self.current_page = self.max_pages - 1
         kwargs = await self.get_page(self.current_page)
-        await interaction.response.edit_message(**kwargs)
+        await interaction.response.edit_message(view=self, **kwargs)
 
     @discord.ui.button(
         label=f"{MENU_EMOJIS['goto']} \u200b Go to Page...",
@@ -219,4 +219,4 @@ class MenuView(FumoView):
 
         self.current_page = int(page_input) - 1
         kwargs = await self.get_page(self.current_page)
-        await modal.interaction.response.edit_message(**kwargs)
+        await modal.interaction.response.edit_message(view=self, **kwargs)

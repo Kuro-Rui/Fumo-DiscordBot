@@ -1,7 +1,7 @@
 import asyncio
 import base64
 from io import BytesIO
-from typing import Literal, Optional, Tuple
+from typing import Literal
 
 import discord
 
@@ -10,52 +10,51 @@ from core.utils.views import FumoView
 
 from .converters import NemusonaFlags
 
+NEMU_BUTTON = discord.ui.Button(label="Nemu's Waifu Generator", url="https://waifus.nemusona.com")
+
 
 class RegenerateButton(discord.ui.Button):
     def __init__(
         self,
         bot: FumoBot,
-        author: discord.abc.User,
         model: Literal["anything", "aom", "nemu"],
         prompt: str,
         flags: NemusonaFlags,
     ):
-        self.author = author
-        self.bot = bot
-        self.flags = flags
-        self.model = model
-        self.prompt = prompt
         super().__init__(
             style=discord.ButtonStyle.green,
             label="Regenerate",
             emoji="\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}",
         )
+        self.bot = bot
+        self.flags = flags
+        self.model = model
+        self.prompt = prompt
 
     async def callback(self, interaction: discord.Interaction):
+        if not isinstance(self.view, FumoView):
+            raise RuntimeError("The view is not an instance of FumoView.")
         channel = interaction.channel
         ephemeral = not (isinstance(channel, discord.DMChannel) or channel.is_nsfw())
-        await interaction.response.defer(ephemeral=ephemeral, thinking=True)
         # Disable button to prevent spam
         self.disabled = True
-        await interaction.followup.edit_message(interaction.message.id, view=self.view)
+        await self.view.message.edit(view=self.view)
 
+        await interaction.response.defer(ephemeral=ephemeral, thinking=True)
         result = await self.regenerate_ai_image(interaction)
         if not result:
             return
-        embed = discord.Embed(colour=self.bot.config.embed_colour, title=f"Seed: {result[0]}")
-        # Not recommended, but this is the only way since the interaction doesn't have command data
+        seed, file = result
+        embed = discord.Embed(colour=self.bot.config.embed_colour, title=f"Seed: {seed}")
         view = FumoView(timeout=60.0)
-        view.author = self.author
-        view.message = interaction.message
-        view.add_item(RegenerateButton(self.bot, self.author, self.model, self.prompt, self.flags))
-        view.add_item(
-            discord.ui.Button(label="Nemu's Waifu Generator", url="https://waifus.nemusona.com")
-        )
-        await interaction.followup.send(file=result[1], embed=embed, view=view)
+        view.add_item(RegenerateButton(self.bot, self.model, self.prompt, self.flags))
+        view.add_item(NEMU_BUTTON)
+        view.author = self.view.author
+        view.message = await interaction.followup.send(file=file, embed=embed, view=view)
 
     async def regenerate_ai_image(
         self, interaction: discord.Interaction
-    ) -> Optional[Tuple[int, discord.File]]:
+    ) -> tuple[int, discord.File] | None:
         data = {
             "prompt": self.prompt,
             "negative_prompt": self.flags.negative,

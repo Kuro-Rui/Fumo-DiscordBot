@@ -1,11 +1,10 @@
-from typing import TYPE_CHECKING, Any, List
+from typing import Any
 
 import discord
 from discord.ext import commands
 
-if TYPE_CHECKING:
-    from core.bot import FumoBot
-from core.utils.views import MenuView
+from ..bot import FumoBot
+from ..utils.views import MenuView
 
 
 class Context(commands.Context):
@@ -23,7 +22,7 @@ class Context(commands.Context):
         """
         This acts the same as `discord.ext.commands.Context.send`, with additional keyword argument.
 
-        filter : `Callable[str]` -> `str`, optional
+        filter: `Callable[str]` -> `str`, optional
             A function which is used to filter the ``content`` before it is sent.
             This must take a single `str` as an argument, and return the processed `str`.
             When `None` is passed, ``content`` won't be touched. Defaults to `None`.
@@ -38,9 +37,9 @@ class Context(commands.Context):
     async def reply(self, content: str = None, **kwargs) -> discord.Message:
         """
         This acts almost the same as `discord.ext.commands.Context.reply`.
-        The difference is that it will send a new message if the reference is not found.
+        The difference is this will send a new message if the reference is not found.
 
-        filter : `Callable[str]` -> `str`, optional
+        filter: `Callable[str]` -> `str`, optional
             A function which is used to filter the ``content`` before it is sent.
             This must take a single `str` as an argument, and return the processed `str`.
             When `None` is passed, ``content`` won't be touched. Defaults to `None`.
@@ -51,21 +50,38 @@ class Context(commands.Context):
                 content = _filter(str(content))
         if self.interaction:
             return await self.send(content, **kwargs)
+        kwargs.update({"reference": self.message})
         try:
-            return await self.send(content, reference=self.message, **kwargs)
+            return await self.send(content, **kwargs)
         except discord.HTTPException:
+            del kwargs["reference"]
             return await self.send(content, **kwargs)
 
     async def send_menu(
         self,
-        pages: List[Any],
+        pages: list[Any],
         page_start: int = 0,
+        *,
         timeout: float = 180.0,
-        **kwargs,
+        ephemeral: bool = False,
     ):
         """Sends a menu."""
-        view = MenuView(pages, page_start, timeout)
-        await view.start(self, **kwargs)
+        view = MenuView(pages, page_start, timeout=timeout)
+        await view.start(self, ephemeral=ephemeral)
+
+    async def delete(message: discord.Message, *, delay: float | None = None) -> bool:
+        """
+        Deletes a message after a delay, ignoring any exceptions.
+
+        Returns `True` if it was successful, `False` otherwise.
+        """
+        try:
+            await message.delete(delay=delay)
+        except discord.NotFound:
+            return True
+        except discord.HTTPException:
+            return False
+        return True
 
     async def react(
         self, emoji: discord.Emoji | discord.PartialEmoji | discord.Reaction | str

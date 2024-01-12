@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Iterable, List, Mapping, Optional
+from typing import Iterable, Mapping
 
 import discord
 import humanize
@@ -13,7 +13,7 @@ __all__ = ("FumoHelp",)
 
 
 class HelpCategorySelect(discord.ui.Select):
-    def __init__(self, cogs: List[commands.Cog], help_for: Optional[commands.Cog]):
+    def __init__(self, cogs: list[commands.Cog], help_for: commands.Cog | None):
         options = [
             discord.SelectOption(
                 label="Main",
@@ -33,7 +33,7 @@ class HelpCategorySelect(discord.ui.Select):
                     label=cog.qualified_name,
                     value=cog.qualified_name,
                     description=description,
-                    emoji=cog.emoji,
+                    emoji=cog.display_emoji,
                 )
             )
         if help_for:
@@ -62,9 +62,9 @@ class HelpCategorySelect(discord.ui.Select):
 class HelpView(FumoView):
     def __init__(
         self,
-        cog: Optional[commands.Cog],
-        cogs: List[commands.Cog],
-        embeds: Dict[str, discord.Embed],
+        cog: commands.Cog | None,
+        cogs: list[commands.Cog],
+        embeds: dict[str, discord.Embed],
     ) -> None:
         super().__init__()
         self.embeds = embeds
@@ -73,9 +73,10 @@ class HelpView(FumoView):
         self.add_item(self.select_menu)
         self.add_item(CloseButton())
 
-    async def start(self, ctx: commands.Context) -> None:
+    async def start(self, ctx: commands.Context) -> discord.Message:
         self.author = ctx.author
         self.message = await ctx.reply(embed=self.current_embed, view=self)
+        return self.message
 
 
 class FumoHelp(commands.HelpCommand):
@@ -93,8 +94,8 @@ class FumoHelp(commands.HelpCommand):
         )
 
     async def filter_cogs(
-        self, cogs: Iterable[Optional[commands.Cog]], *, sort: bool = False
-    ) -> List[commands.Cog]:
+        self, cogs: Iterable[commands.Cog | None], *, sort: bool = False
+    ) -> list[commands.Cog]:
         filtered = []
         for cog in cogs:
             if not cog:
@@ -114,8 +115,8 @@ class FumoHelp(commands.HelpCommand):
         return embed
 
     async def _create_embeds(
-        self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]
-    ) -> Dict[str, discord.Embed]:
+        self, mapping: Mapping[commands.Cog | None, list[commands.Command]]
+    ) -> dict[str, discord.Embed]:
         bot = self.context.bot
         prefix = self.context.clean_prefix
 
@@ -131,7 +132,9 @@ class FumoHelp(commands.HelpCommand):
             if splitted:
                 description = splitted[0]
             description += "\n" + wrap(f"{prefix}help {cog.qualified_name}", "`")
-            main_embed.add_field(name=f"{cog.emoji} {cog.qualified_name}", value=description)
+            main_embed.add_field(
+                name=f"{cog.display_emoji} {cog.qualified_name}", value=description
+            )
         embeds["_main"] = main_embed
         for cog, cmds in mapping.items():
             if cog not in cogs:
@@ -161,7 +164,7 @@ class FumoHelp(commands.HelpCommand):
         return embeds
 
     async def send_bot_help(
-        self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]
+        self, mapping: Mapping[commands.Cog | None, list[commands.Command]]
     ) -> None:
         cogs = await self.filter_cogs(mapping.keys(), sort=True)
         embeds = await self._create_embeds(mapping)
@@ -305,10 +308,8 @@ class FumoHelp(commands.HelpCommand):
             embed.title = f"Page {i} of {len(pages)}"
             embed.add_field(name="Subcommands", value=page, inline=False)
             embeds.append(embed)
-        view = await self.context.send_menu(embeds)
-        await view.start(self.context, reply=True)
+        await self.context.send_menu(embeds)
 
     async def send_command_help(self, command: commands.Command) -> None:
         embed = await self._make_command_help_embed(command)
-        view = await self.context.send_menu([embed])
-        await view.start(self.context, reply=True)
+        await self.context.send_menu([embed])
