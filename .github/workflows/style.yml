@@ -1,6 +1,6 @@
 name: Style Reformatting
 
-on: [push]
+on: push
 
 jobs:
   style:
