@@ -1,10 +1,12 @@
 import inspect
 import logging
+from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
-from ..bot import FumoBot
+if TYPE_CHECKING:
+    from ..bot import FumoBot
 
 __all__ = ("Cog",)
 
@@ -12,7 +14,7 @@ __all__ = ("Cog",)
 class Cog(commands.Cog):
     """A custom subclass of `commands.Cog`."""
 
-    def __init__(self, bot: FumoBot) -> None:
+    def __init__(self, bot: "FumoBot") -> None:
         self._log = logging.getLogger(f"fumo.cogs.{self.qualified_name.lower()}")
         self.bot = bot
         super().__init__()
