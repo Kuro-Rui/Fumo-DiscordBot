@@ -32,15 +32,12 @@ class RegenerateButton(discord.ui.Button):
         self.prompt = prompt
 
     async def callback(self, interaction: discord.Interaction):
-        if not isinstance(self.view, FumoView):
-            raise RuntimeError("The view is not an instance of FumoView.")
-        channel = interaction.channel
-        ephemeral = not (isinstance(channel, discord.DMChannel) or channel.is_nsfw())
         # Disable button to prevent spam
         self.disabled = True
-        await self.view.message.edit(view=self.view)
-
+        ephemeral = interaction.message.flags.ephemeral
         await interaction.response.defer(ephemeral=ephemeral, thinking=True)
+        await interaction.followup.edit_message(interaction.message.id, view=self.view)
+
         result = await self.regenerate_ai_image(interaction)
         if not result:
             return
