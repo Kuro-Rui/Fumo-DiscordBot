@@ -309,7 +309,7 @@ class Owner(commands.Cog):
         await view.start(ctx, embed=embed)
         await view.wait()
         if view.result:
-            embed.title= "Shutting Down..."
+            embed.title = "Shutting Down..."
             await view.message.edit(embed=embed)
             await self.bot.close()
         else:
