@@ -5,7 +5,6 @@ import discord
 import jishaku
 from jishaku.features.baseclass import Feature
 from jishaku.features.filesystem import FilesystemFeature
-from jishaku.features.guild import GuildFeature
 from jishaku.features.invocation import InvocationFeature
 from jishaku.features.python import PythonFeature
 from jishaku.features.root_command import RootCommand
@@ -15,15 +14,6 @@ from core import commands
 from core.bot import FumoBot
 from core.utils.views import CloseButton, FumoView
 
-Features = (
-    FilesystemFeature,
-    GuildFeature,
-    InvocationFeature,
-    PythonFeature,
-    RootCommand,
-    ShellFeature,
-)
-
 jishaku.Flags.RETAIN = True
 jishaku.Flags.NO_UNDERSCORE = True
 jishaku.Flags.FORCE_PAGINATOR = True
@@ -31,7 +21,7 @@ jishaku.Flags.NO_DM_TRACEBACK = True
 jishaku.Flags.USE_ANSI_ALWAYS = True
 
 
-class Jishaku(*Features):
+class Jishaku(FilesystemFeature, InvocationFeature, PythonFeature, RootCommand, ShellFeature):
     """The Jishaku debug and diagnostic commands."""
 
     _log = logging.getLogger("fumo.cogs.jishaku")
