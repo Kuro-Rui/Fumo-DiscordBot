@@ -98,7 +98,6 @@ class Owner(commands.Cog):
         for cog in self.bot.cogs.values():
             branch = tree.add(cog.qualified_name, style="not underline bold red")
             self._rich_walk_commands(sorted(cog.get_commands(), key=lambda c: c.name), branch)
-        self._rich_walk_commands(self.bot.commands, tree)
         console = Console(
             color_system="standard",
             file=StringIO(),
@@ -166,7 +165,7 @@ class Owner(commands.Cog):
                     sorted(app_command.commands, key=lambda c: c.name), branch
                 )
             elif isinstance(app_command, discord.app_commands.Command):
-                tree.add(app_command.name, style="not bold white")
+                tree.add(app_command.name, style="not underline bold white")
             elif isinstance(app_command, discord.app_commands.ContextMenu):
                 if app_command.type == discord.AppCommandType.user:
                     tree.add(f"{app_command.name} (User)", style="not underline bold magenta")
