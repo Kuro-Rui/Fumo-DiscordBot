@@ -7,7 +7,6 @@ from jishaku.features.baseclass import Feature
 from jishaku.features.filesystem import FilesystemFeature
 from jishaku.features.guild import GuildFeature
 from jishaku.features.invocation import InvocationFeature
-from jishaku.features.management import ManagementFeature  # Might remove this later
 from jishaku.features.python import PythonFeature
 from jishaku.features.root_command import RootCommand
 from jishaku.features.shell import ShellFeature
@@ -20,7 +19,6 @@ Features = (
     FilesystemFeature,
     GuildFeature,
     InvocationFeature,
-    ManagementFeature,
     PythonFeature,
     RootCommand,
     ShellFeature,
