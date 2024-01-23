@@ -5,7 +5,7 @@ import discord
 from .. import commands
 from .menus import ListPageSource
 
-__all__ = ("CloseButton", "FumoView", "MenuView")
+__all__ = ("CloseButton", "FumoView", "ConfirmView", "MenuView")
 
 MENU_EMOJIS = {
     "first": "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
@@ -15,6 +15,23 @@ MENU_EMOJIS = {
     "goto": "\N{RIGHTWARDS ARROW WITH HOOK}",
     "close": "\N{HEAVY MULTIPLICATION X}\N{VARIATION SELECTOR-16}",
 }
+
+
+class CloseButton(discord.ui.Button):
+    def __init__(
+        self,
+        emoji: str | discord.Emoji | discord.PartialEmoji | None = MENU_EMOJIS["close"],
+        label: str | None = "Close",
+        style: discord.ButtonStyle = discord.ButtonStyle.red,
+    ):
+        super().__init__(style=style, label=label, emoji=emoji)
+
+    async def callback(self, interaction: discord.Interaction) -> None:
+        self.view.stop()
+        if interaction.message.flags.ephemeral:
+            await interaction.response.edit_message(view=None)
+            return
+        await interaction.message.delete()
 
 
 class FumoView(discord.ui.View):
@@ -56,21 +73,33 @@ class FumoView(discord.ui.View):
             pass
 
 
-class CloseButton(discord.ui.Button):
-    def __init__(
-        self,
-        emoji: str | discord.Emoji | discord.PartialEmoji | None = MENU_EMOJIS["close"],
-        label: str | None = "Close",
-        style: discord.ButtonStyle = discord.ButtonStyle.red,
-    ):
-        super().__init__(style=style, label=label, emoji=emoji)
+class ConfirmView(FumoView):
+    def __init__(self, *, timeout: float = 60.0):
+        if not timeout:
+            raise ValueError("This view cannot be persistent.")
+        super().__init__(timeout=timeout)
+        self.result: bool | None = None
 
-    async def callback(self, interaction: discord.Interaction) -> None:
-        self.view.stop()
-        if interaction.message.flags.ephemeral:
-            await interaction.response.edit_message(view=None)
-            return
-        await interaction.message.delete()
+    @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.stop()
+        self.result = True
+        await self.disable_items(interaction)
+
+    @discord.ui.button(label="No", style=discord.ButtonStyle.red)
+    async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.stop()
+        self.result = False
+        await self.disable_items(interaction)
+
+    async def disable_items(self, interaction: discord.Interaction):
+        try:
+            for child in self.children:
+                child.disabled = True
+            await interaction.response.edit_message(view=self)
+        except discord.HTTPException:
+            # message could no longer be there or we may not be able to edit/delete it anymore
+            pass
 
 
 class MenuViewJumpModal(discord.ui.Modal):

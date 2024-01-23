@@ -10,6 +10,7 @@ from rich.tree import Tree
 from core import commands
 from core.bot import FumoBot
 from core.utils.formatting import code, format_items, format_perms, pagify, wrap
+from core.utils.views import ConfirmView
 
 
 class Owner(commands.Cog):
@@ -172,6 +173,14 @@ class Owner(commands.Cog):
                 elif app_command.type == discord.AppCommandType.message:
                     tree.add(f"{app_command.name} (Message)", style="not underline bold blue")
 
+    @commands_slash.command(name="sync")
+    async def commands_slash_sync(self, ctx: commands.Context, *, guild: discord.Guild = None):
+        """Syncs all app commands to Discord."""
+        commands = []
+        async with ctx.typing():
+            commands = await self.bot.tree.sync(guild=guild)
+        await ctx.send(f"Synced {len(commands)} app commands.")
+
     @commands.is_owner()
     @commands.group(aliases=["set", "settings"], invoke_without_command=True)
     async def config(self, ctx: commands.Context):
@@ -290,6 +299,22 @@ class Owner(commands.Cog):
             await ctx.send(pages[0])
         else:
             await ctx.send_menu(pages)
+
+    @commands.is_owner()
+    @commands.command(aliases=["die", "suicide"])
+    async def shutdown(self, ctx: commands.Context):
+        """Shuts the bot down."""
+        embed = discord.Embed(color=ctx.embed_color, title="Are you sure you want to shut down?")
+        view = ConfirmView()
+        await view.start(ctx, embed=embed)
+        await view.wait()
+        if view.result:
+            embed.title= "Shutting Down..."
+            await view.message.edit(embed=embed)
+            await self.bot.close()
+        else:
+            embed.title = "Cancelling..."
+            await view.message.edit(embed=embed)
 
 
 async def setup(bot: FumoBot):
