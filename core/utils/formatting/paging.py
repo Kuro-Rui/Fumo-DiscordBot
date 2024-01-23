@@ -59,19 +59,18 @@ def pagify(
         Pages of the given text.
 
     """
-    in_text = text
-    while len(in_text) > page_length:
+    while len(text) > page_length:
         this_page_len = page_length
-        closest_delim = (in_text.rfind(d, 1, this_page_len) for d in delims)
+        closest_delim = (text.rfind(d, 1, this_page_len) for d in delims)
         if priority:
             closest_delim = next((x for x in closest_delim if x > 0), -1)
         else:
             closest_delim = max(closest_delim)
         closest_delim = closest_delim if closest_delim != -1 else this_page_len
-        to_send = in_text[:closest_delim]
+        to_send = text[:closest_delim]
         if len(to_send.strip()) > 0:
             yield to_send
-        in_text = in_text[closest_delim:]
+        text = text[closest_delim:]
 
-    if len(in_text.strip()) > 0:
-        yield in_text
+    if len(text.strip()) > 0:
+        yield text
