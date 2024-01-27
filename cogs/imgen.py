@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import functools
+import re
 from io import BytesIO
 from pathlib import Path
 from typing import Literal
@@ -40,7 +41,8 @@ class Imgen(commands.Cog):
         """
         Generate a waifu.
 
-        The model can be either `Anything`, `AOM`, or `Nemu`.
+        The **model** can be either `Anything`, `AOM`, or `Nemu`.
+        The **prompt** can either be a [Danbooru](https://danbooru.donmai.us/) post URL or you can make one yourself.
 
         **Flags**
         - `--negative`: What you don't want the bot to include, defaults to nothing.
@@ -54,6 +56,12 @@ class Imgen(commands.Cog):
         if not prompt:
             await ctx.reply("You need to provide a prompt.")
             return
+        if match := re.match(r"https://danbooru\.donmai\.us/posts/(\d+)", prompt):
+            post_id = match.group(1)
+            prompt, error = await self._get_danbooru_tags(post_id)
+            if error:
+                await ctx.send(error)
+                return
         result = await self.generate_ai_image(ctx, model, prompt, flags)
         if not result:
             return
@@ -81,6 +89,19 @@ class Imgen(commands.Cog):
             return choices
         current = current.lower()
         return [c for c in choices if current in c.name.lower()]
+
+    async def _get_danbooru_tags(self, post_id: int) -> tuple[str | None, str | None]:
+        """Returns the tags and the error, if there's any."""
+        async with self.bot.session.get(
+            f"https://danbooru.donmai.us/posts/{post_id}.json"
+        ) as response:
+            if response.status == 200:
+                data = await response.json()
+                return ", ".join(data["tag_string"].split()), None
+            elif response.status == 404:
+                return None, "Post not found."
+            else:
+                return None, "Something went wrong when extracting tags."
 
     async def generate_ai_image(
         self,
