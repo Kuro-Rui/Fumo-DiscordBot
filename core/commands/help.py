@@ -192,27 +192,10 @@ class FumoHelp(commands.HelpCommand):
         # Split the string with multiple chars which is "<", ">", "[", "]", and " "
         # For example, <user> turns to ["<", "user", ">"]
         splitted_signature = re.findall(r"[<>\[\]\s.|=]|\w+", command.signature)
-        colored_signature = []
-        # Probably not that efficient but hey, it works :p
         piece = ""
         for char in splitted_signature:
-            if char in ("<", "["):
-                # Make sure the string is empty first, there can be brackets inside brackets
-                if not piece:
-                    piece = char
-                else:
-                    piece += char
-            elif char in ("|", ".", "=", " "):
-                piece += char
-            elif char in (">", "]"):
-                piece += char
-                # Make sure the start and end is the same bracket since it can broke [user=<you>]
-                if (piece[0] == "<" and char == ">") or (piece[0] == "[" and char == "]"):
-                    colored_signature.append(piece)
-                    piece = ""
-            else:  # It's a variable name
-                piece += EightBitANSI.paint_blue(char, bold=True)
-        signatures.append(" ".join(colored_signature))
+            piece += EightBitANSI.paint_blue(char, bold=True) if char.isalnum() else char
+        signatures.append(piece)
         signature = " ".join(signatures)
 
         # Handling command aliases, if there's any.
