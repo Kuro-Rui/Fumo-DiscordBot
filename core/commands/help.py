@@ -214,9 +214,11 @@ class FumoHelp(commands.HelpCommand):
             aliases_list = [
                 "{prefix}{parent}{alias}".format(
                     prefix=EightBitANSI.paint_red(prefix),
-                    parent=EightBitANSI.paint_magenta(command.parent.qualified_name) + " "
-                    if command.parent
-                    else "",
+                    parent=(
+                        EightBitANSI.paint_magenta(command.parent.qualified_name) + " "
+                        if command.parent
+                        else ""
+                    ),
                     alias=EightBitANSI.paint_magenta(alias),
                 )
                 for alias in valid_aliases
