@@ -71,7 +71,21 @@ class Context(commands.Context):
         view = MenuView(pages, page_start, timeout=timeout)
         await view.start(self, ephemeral=ephemeral)
 
-    async def delete(message: discord.Message, *, delay: float | None = None) -> bool:
+    async def edit(self, message: discord.Message, **kwargs) -> discord.Message | None:
+        """
+        Edits a message, ignoring any exceptions. See `discord.Message.edit` method for kwargs.
+
+        Returns the message if it was successful, `None` otherwise.
+        """
+        try:
+            new = await message.edit(**kwargs)
+        except discord.NotFound:
+            return None
+        except discord.HTTPException:
+            return None
+        return new
+
+    async def delete(self, message: discord.Message, *, delay: float | None = None) -> bool:
         """
         Deletes a message after a delay, ignoring any exceptions.
 

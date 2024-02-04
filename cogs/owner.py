@@ -1,3 +1,5 @@
+import importlib
+import sys
 import traceback
 from io import StringIO
 from typing import Iterable, List
@@ -298,6 +300,32 @@ class Owner(commands.Cog):
             await ctx.send(pages[0])
         else:
             await ctx.send_menu(pages)
+
+    @commands.is_owner()
+    @commands.command()
+    async def reloadmodule(self, ctx: commands.Context, module: str):
+        """
+        Force reload a module from `sys.modules`.
+
+        Please only use this if you know what you're doing :p
+        """
+        modules = sorted([m for m in sys.modules if m.split(".")[0] == module], reverse=True)
+        if not modules:
+            await ctx.send("I couldn't find a module with that name.")
+            return
+        formatted = format_items([wrap(m, "`") for m in modules])
+        view = ConfirmView()
+        message = await view.start(ctx, f"Are you sure you want to reload {formatted}?")
+        await view.wait()
+        if view.result:
+            for module in modules:
+                importlib.reload(sys.modules[module])
+            content = f"Reloaded {formatted}."
+        else:
+            content = f"Cancelled."
+        message = await ctx.edit(view.message, content=content)
+        if not message:
+            await ctx.send(content)
 
     @commands.is_owner()
     @commands.command(aliases=["die", "suicide"])
