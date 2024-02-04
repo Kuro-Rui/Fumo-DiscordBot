@@ -342,7 +342,6 @@ class Owner(commands.Cog):
         if view.result:
             embed.title = "Shutting Down..."
             await view.message.edit(embed=embed)
-            await asyncio.sleep(0.5)
             await self.bot.close()
         else:
             embed.title = "Cancelling..."
