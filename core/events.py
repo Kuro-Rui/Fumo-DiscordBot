@@ -214,7 +214,7 @@ def init_events(bot: "FumoBot"):
                 await ctx.reply(message)
                 return
             if exception.args:
-                await ctx.reply(exception.args[0])
+                await ctx.send_help(ctx.command, exception.args[0])
                 return
             await ctx.send_help(ctx.command)
         elif isinstance(exception, RangeError):
