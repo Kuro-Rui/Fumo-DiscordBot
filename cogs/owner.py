@@ -86,9 +86,7 @@ class Owner(commands.Cog):
         await ctx.tick()
 
     @commands.is_owner()
-    @commands.group(
-        name="commands", aliases=["command", "cmds", "cmd"], invoke_without_command=True
-    )
+    @commands.group(name="commands", aliases=["command", "cmds", "cmd"])
     async def _commands(self, ctx: commands.Context):
         """Commands management."""
         pass
@@ -115,7 +113,7 @@ class Owner(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.is_owner()
-    @_commands.group(name="slash", invoke_without_command=True)
+    @_commands.group(name="slash")
     async def commands_slash(self, ctx: commands.Context):
         """Slash commands management."""
         pass
