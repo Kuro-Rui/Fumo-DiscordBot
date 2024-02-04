@@ -4,7 +4,6 @@ import discord
 from discord.ext import commands
 
 if TYPE_CHECKING:
-    from .help import FumoHelp
     from ..bot import FumoBot
 from ..utils.views import MenuView
 
