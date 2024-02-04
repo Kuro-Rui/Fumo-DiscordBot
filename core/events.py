@@ -171,54 +171,6 @@ def init_events(bot: "FumoBot"):
             await ctx.send_help(ctx.command)
         elif isinstance(exception, MissingRequiredAttachment):
             await ctx.reply("You are missing a required attachment.")
-        elif isinstance(exception, commands.UserInputError):
-            await ctx.send_help(ctx.command)
-        elif isinstance(exception, BadArgument):
-            if isinstance(exception.__cause__, ValueError):
-                if converter not in (int, float):
-                    return
-                await ctx.reply(f'"{argument}" is not a number.')
-            if isinstance(converter, commands.Range):
-                if converter.annotation is int:
-                    if converter.min == 0 and converter.max is None:
-                        message = "Argument `{parameter_name}` must be a positive integer."
-                    elif converter.min is None and converter.max is not None:
-                        message = "Argument `{parameter_name}` must be an integer no more than {maximum}."
-                    elif converter.min is not None and converter.max is None:
-                        message = "Argument `{parameter_name}` must be an integer no less than {minimum}."
-                    elif converter.max is not None and converter.min is not None:
-                        message = "Argument `{parameter_name}` must be an integer between {minimum} and {maximum}."
-                elif converter.annotation is float:
-                    if converter.min == 0 and converter.max is None:
-                        message = "Argument `{parameter_name}` must be a positive number."
-                    elif converter.min is None and converter.max is not None:
-                        message = (
-                            "Argument `{parameter_name}` must be a number no more than {maximum}."
-                        )
-                    elif converter.min is not None and converter.max is None:
-                        message = (
-                            "Argument `{parameter_name}` must be a number no less than {minimum}."
-                        )
-                    elif converter.max is not None and converter.min is not None:
-                        message = "Argument `{parameter_name}` must be a number between {minimum} and {maximum}."
-                elif converter.annotation is str:
-                    if exception.minimum is None and exception.maximum is not None:
-                        message = "Argument `{parameter_name}` must be a string with a length of no more than {maximum}."
-                    elif exception.minimum is not None and exception.maximum is None:
-                        message = "Argument `{parameter_name}` must be a string with a length of no less than {minimum}."
-                    elif exception.maximum is not None and exception.minimum is not None:
-                        message = "Argument `{parameter_name}` must be a string with a length of between {minimum} and {maximum}."
-                message = message.format(
-                    maximum=converter.max,
-                    minimum=converter.min,
-                    parameter_name=ctx.current_parameter.name,
-                )
-                await ctx.reply(message)
-                return
-            if exception.args:
-                await ctx.send_help(ctx.command, exception.args[0])
-                return
-            await ctx.send_help(ctx.command)
         elif isinstance(exception, RangeError):
             if isinstance(exception.value, int):
                 if exception.minimum == 0 and exception.maximum is None:
@@ -260,6 +212,17 @@ def init_events(bot: "FumoBot"):
             )
             await ctx.reply(message)
             return
+        elif isinstance(exception, BadArgument):
+            if isinstance(exception.__cause__, ValueError):
+                if converter not in (int, float):
+                    return
+                await ctx.reply(f'"{argument}" is not a number.')
+            if exception.args:
+                await ctx.send(exception.args[0])
+                return
+            await ctx.send_help(ctx.command)
+        elif isinstance(exception, commands.UserInputError):
+            await ctx.send_help(ctx.command)
         elif isinstance(exception, CommandInvokeError):
             exc_info = exception.original
             cmd = ctx.command.qualified_name
