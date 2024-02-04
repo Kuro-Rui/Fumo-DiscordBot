@@ -309,7 +309,10 @@ class Owner(commands.Cog):
 
         Please only use this if you know what you're doing :p
         """
-        modules = sorted([m for m in sys.modules if m.split(".")[0] == module], reverse=True)
+        if module.split("."):
+            modules = [m for m in sys.modules if m == module]
+        else:
+            modules = sorted([m for m in sys.modules if m.split(".")[0] == module], reverse=True)
         if not modules:
             await ctx.send("I couldn't find a module with that name.")
             return
