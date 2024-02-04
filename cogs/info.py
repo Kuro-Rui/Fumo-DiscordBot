@@ -37,7 +37,9 @@ class Info(commands.Cog):
 
     @app_commands.command(name="help")
     @app_commands.describe(category_or_command="The category or command to get help for.")
-    async def _help(self, interaction: discord.Interaction, category_or_command: str | None = None):
+    async def _help(
+        self, interaction: discord.Interaction, category_or_command: str | None = None
+    ):
         """Shows help about the bot, a category, or a command."""
         ctx = await self.bot.get_context(interaction, cls=commands.Context)
         await ctx.send_help(category_or_command)
