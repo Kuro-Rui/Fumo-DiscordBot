@@ -129,37 +129,3 @@ class Context(commands.Context):
         Returns `True` if it was successful, `False` otherwise.
         """
         return await self.react("\N{CROSS MARK}")
-
-    async def send_help(
-        self,
-        help_for: commands.Command | commands.Group | commands.Cog | str | None = None,
-        details: str | None = None,
-    ) -> None:
-        """Sends help for a command or a cog with details, if any."""
-        hc: "FumoHelp" = self.bot.help_command.copy()
-        hc.context = self
-        if not help_for:
-            await hc.prepare_help_command(self)
-            try:
-                await hc.send_bot_help(hc.get_bot_mapping(), details=details)
-            except commands.CommandError as error:
-                await hc.on_help_command_error(self, error)
-                return
-
-        cog_or_command = help_for
-        if isinstance(help_for, str):
-            cog_or_command = self.bot.get_cog(help_for) or self.bot.get_command(help_for)
-        if not cog_or_command:
-            return
-        await hc.prepare_help_command(self, cog_or_command.qualified_name)
-        try:
-            if hasattr(cog_or_command, "__cog_commands__"):
-                await hc.send_cog_help(cog_or_command, details=details)
-            elif isinstance(cog_or_command, commands.Group):
-                await hc.send_group_help(cog_or_command, details=details)
-            elif isinstance(cog_or_command, commands.Command):
-                await hc.send_command_help(cog_or_command, details=details)
-            else:
-                return
-        except commands.CommandError as error:
-            await hc.on_help_command_error(self, error)

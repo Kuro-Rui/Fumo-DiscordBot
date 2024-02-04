@@ -73,9 +73,9 @@ class HelpView(FumoView):
         self.add_item(self.select_menu)
         self.add_item(CloseButton())
 
-    async def start(self, ctx: commands.Context, *, details: str | None = None) -> discord.Message:
+    async def start(self, ctx: commands.Context, /) -> discord.Message:
         self.author = ctx.author
-        self.message = await ctx.reply(details, embed=self.current_embed, view=self)
+        self.message = await ctx.reply(embed=self.current_embed, view=self)
         return self.message
 
 
@@ -164,29 +164,19 @@ class FumoHelp(commands.HelpCommand):
         return embeds
 
     async def send_bot_help(
-        self,
-        mapping: Mapping[commands.Cog | None, list[commands.Command]],
-        /,
-        *,
-        details: str | None = None,
+        self, mapping: Mapping[commands.Cog | None, list[commands.Command]], /
     ) -> None:
         cogs = await self.filter_cogs(mapping.keys(), sort=True)
         embeds = await self._create_embeds(mapping)
         view = HelpView(None, cogs, embeds)
-        await view.start(self.context, details=details)
+        await view.start(self.context)
 
-    async def send_cog_help(
-        self,
-        cog: commands.Cog,
-        /,
-        *,
-        details: str | None = None,
-    ) -> None:
+    async def send_cog_help(self, cog: commands.Cog, /) -> None:
         mapping = self.get_bot_mapping()
         cogs = await self.filter_cogs(mapping.keys(), sort=True)
         embeds = await self._create_embeds(mapping)
         view = HelpView(cog, cogs, embeds)
-        await view.start(self.context, details=details)
+        await view.start(self.context)
 
     def get_command_signature(self, command: commands.Command | commands.Group) -> str:
         # Handling command name
@@ -286,19 +276,7 @@ class FumoHelp(commands.HelpCommand):
             embed.add_field(name="Cooldowns", value=cooldowns, inline=False)
         return embed
 
-    def _make_pages(self, embeds: list[discord.Embed], *, details: str | None = None):
-        pages = []
-        for embed in embeds:
-            pages.append({"content": details, "embed": embed})
-        return pages
-
-    async def send_group_help(
-        self,
-        group: commands.Group,
-        /,
-        *,
-        details: str | None = None,
-    ) -> None:
+    async def send_group_help(self, group: commands.Group, /) -> None:
         subcommands = await self.filter_commands(group.commands, sort=True)
         if not subcommands:
             await self.send_command_help(group)
@@ -315,16 +293,8 @@ class FumoHelp(commands.HelpCommand):
             embed.title = f"Page {i} of {len(pages)}"
             embed.add_field(name="Subcommands", value=page, inline=False)
             embeds.append(embed)
-        pages = self._make_pages(embeds, details=details)
-        await self.context.send_menu(pages)
+        await self.context.send_menu(embeds)
 
-    async def send_command_help(
-        self,
-        command: commands.Command,
-        /,
-        *,
-        details: str | None = None,
-    ) -> None:
+    async def send_command_help(self, command: commands.Command, /) -> None:
         embed = await self._make_command_help_embed(command)
-        pages = self._make_pages([embed], details=details)
-        await self.context.send_menu(pages)
+        await self.context.send_menu([embed])

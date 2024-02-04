@@ -172,7 +172,7 @@ def init_events(bot: "FumoBot"):
         elif isinstance(exception, MissingRequiredAttachment):
             await ctx.reply("You are missing a required attachment.")
         elif isinstance(exception, commands.UserInputError):
-            await ctx.send_help()
+            await ctx.send_help(ctx.command)
         elif isinstance(exception, BadArgument):
             if isinstance(exception.__cause__, ValueError):
                 if converter not in (int, float):
