@@ -89,7 +89,8 @@ class Owner(commands.Cog):
     @commands.group(name="commands", aliases=["command", "cmds", "cmd"])
     async def _commands(self, ctx: commands.Context):
         """Commands management."""
-        pass
+        if not ctx.invoked_subcommand:
+            await ctx.send_help(ctx.command)
 
     @_commands.command(name="list")
     async def commands_list(self, ctx: commands.Context):
@@ -116,7 +117,8 @@ class Owner(commands.Cog):
     @_commands.group(name="slash")
     async def commands_slash(self, ctx: commands.Context):
         """Slash commands management."""
-        pass
+        if not ctx.invoked_subcommand:
+            await ctx.send_help(ctx.command)
 
     @commands_slash.command(name="list")
     async def commands_slash_list(self, ctx: commands.Context):

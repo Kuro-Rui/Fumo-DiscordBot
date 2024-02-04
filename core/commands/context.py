@@ -146,6 +146,7 @@ class Context(commands.Context):
                 await hc.on_help_command_error(self, error)
                 return
 
+        cog_or_command = help_for
         if isinstance(help_for, str):
             cog_or_command = self.bot.get_cog(help_for) or self.bot.get_command(help_for)
         if not cog_or_command:
