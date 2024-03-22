@@ -42,7 +42,10 @@ class Info(commands.Cog):
     ):
         """Shows help about the bot, a category, or a command."""
         ctx = await self.bot.get_context(interaction, cls=commands.Context)
-        await ctx.send_help(category_or_command)
+        if not category_or_command:
+            await ctx.send_help()
+        else:
+            await ctx.send_help(category_or_command)
 
     @_help.autocomplete("category_or_command")
     async def _help_autocomplete(

@@ -84,13 +84,12 @@ class FumoHelp(commands.HelpCommand):
 
     context: commands.Context
 
-    def __init__(self, **options):
+    def __init__(self):
         super().__init__(
             command_attrs={
                 "help": "Shows help about the bot, a category, or a command.",
                 "usage": "[category|command]",
-            },
-            **options,
+            }
         )
 
     async def filter_cogs(

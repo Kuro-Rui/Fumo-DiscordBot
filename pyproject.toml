@@ -6,6 +6,10 @@ target-version = ["py310"]
 profile = "black"
 line_length = 99
 
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+
 [tool.ruff]
 line-length = 99
 target-version = "py38"
