@@ -64,7 +64,7 @@ class Owner(commands.Cog):
             return
         success = []
         for user in users:
-            if user in self.bot.blacklist:
+            if self.bot.is_blacklisted(user):
                 continue
             self.bot.add_to_blacklist(user.id)
             success.append(user)
@@ -83,7 +83,7 @@ class Owner(commands.Cog):
             return
         success = []
         for user in users:
-            if user not in self.bot.blacklist:
+            if not self.bot.is_blacklisted(user):
                 continue
             self.bot.remove_from_blacklist(user.id)
             success.append(user)
@@ -350,7 +350,7 @@ class Owner(commands.Cog):
             embed.title = "Shutting Down..."
             async with self.lock:
                 await view.message.edit(embed=embed)
-                await self.bot.close()
+            await self.bot.close()
         else:
             embed.title = "Cancelling..."
             await view.message.edit(embed=embed)

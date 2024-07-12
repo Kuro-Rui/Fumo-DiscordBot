@@ -108,18 +108,18 @@ class FumoBot(commands.AutoShardedBot):
             except Exception as e:
                 log.exception("Failed to load %s", file.stem, exc_info=e)
 
-    def add_to_blacklist(self, user_id: int) -> None:
-        self._blacklist.add(user_id)
+    def add_to_blacklist(self, user: discord.User) -> None:
+        self._blacklist.add(user.id)
 
-    def remove_from_blacklist(self, user_id: int) -> None:
-        self._blacklist.remove(user_id)
+    def remove_from_blacklist(self, user: discord.User) -> None:
+        self._blacklist.remove(user.id)
 
     @property
     def blacklist(self) -> frozenset[int]:
         return frozenset(self._blacklist)
 
-    def is_blacklisted(self, user_id: int) -> bool:
-        return user_id in self._blacklist
+    def is_blacklisted(self, user: discord.User) -> bool:
+        return user.id in self._blacklist
 
     async def get_context(
         self, origin: discord.Interaction | discord.Message, /, *, cls=commands.Context
@@ -158,9 +158,8 @@ class FumoBot(commands.AutoShardedBot):
             if retry_after:
                 self._spam_count[author.id] += 1
                 if self._spam_count[author.id] >= 5:
-                    await self.add_to_blacklist(author.id)
-                    del self._spam_count[author.id]
                     self.add_to_blacklist(author.id)
+                    del self._spam_count[author.id]
                     log.warning("Blacklisted %s (%d) for spamming commands.", author, author.id)
                 else:
                     guild = message.guild
