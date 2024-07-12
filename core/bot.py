@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import logging
 import sys
@@ -48,6 +49,7 @@ class FumoBot(commands.AutoShardedBot):
         self._cooldown = commands.CooldownMapping.from_cooldown(10, 15, commands.BucketType.user)
         self._spam_count = Counter()
 
+        self.lock = asyncio.Lock()
         self.before_invoke(self.before_invoke_hook)
         init_events(self)
 
@@ -200,10 +202,10 @@ class FumoBot(commands.AutoShardedBot):
     async def close(self) -> None:
         log.info("Saving config...")
         self._config.save()
-        log.info("Saving data to Redis...")
-        self.loop.create_task(self._redis_save())
-        if not self.loop.is_running():
-            self.loop.run_until_complete(self._redis_save())
+
+        async with self.lock:
+            log.info("Saving data to Redis...")
+            await self._redis_save()
 
         log.info("Shutting down...")
         await self.session.close()

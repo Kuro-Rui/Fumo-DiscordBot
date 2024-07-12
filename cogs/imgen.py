@@ -1,19 +1,19 @@
 import asyncio
 import base64
 import functools
-import re
+# import re
 from io import BytesIO
 from pathlib import Path
 from typing import Literal
 
 import discord
-from discord import app_commands
+# from discord import app_commands
 from PIL import Image
 
-from cogs.utils.imgen import NEMU_BUTTON, Model, NemusonaFlags, Prompt, RegenerateButton
+from cogs.utils.imgen import NemusonaFlags  # NEMU_BUTTON, Model, NemusonaFlags, Prompt, RegenerateButton
 from core import commands
 from core.bot import FumoBot
-from core.utils.views import FumoView
+# from core.utils.views import FumoView
 
 
 class Imgen(commands.Cog):
@@ -26,69 +26,69 @@ class Imgen(commands.Cog):
     def display_emoji(self) -> discord.PartialEmoji:
         return discord.PartialEmoji(name="Sakuya", id=935836224483115048)
 
-    @commands.bot_has_permissions(attach_files=True)
-    @commands.max_concurrency(1, commands.BucketType.user)
-    @commands.hybrid_command(usage="<model> <prompt> [flags...]")
-    @app_commands.describe(model="The model to use.", prompt="Your prompt.")
-    async def generate(
-        self,
-        ctx: commands.Context,
-        model: Model,
-        prompt: commands.Greedy[Prompt],
-        *,
-        flags: NemusonaFlags,
-    ):
-        """
-        Generate a waifu.
+    # @commands.bot_has_permissions(attach_files=True)
+    # @commands.max_concurrency(1, commands.BucketType.user)
+    # @commands.hybrid_command(usage="<model> <prompt> [flags...]")
+    # @app_commands.describe(model="The model to use.", prompt="Your prompt.")
+    # async def generate(
+    #     self,
+    #     ctx: commands.Context,
+    #     model: Model,
+    #     prompt: commands.Greedy[Prompt],
+    #     *,
+    #     flags: NemusonaFlags,
+    # ):
+    #     """
+    #     Generate a waifu.
 
-        The **model** can be either `Anything`, `AOM`, or `Nemu`.
-        The **prompt** can either be a [Danbooru](https://danbooru.donmai.us/) post URL or you can make one yourself.
+    #     The **model** can be either `Anything`, `AOM`, or `Nemu`.
+    #     The **prompt** can either be a [Danbooru](https://danbooru.donmai.us/) post URL or you can make one yourself.
 
-        **Flags**
-        - `--negative`: What you don't want the bot to include, defaults to nothing.
-        - `--cfgscale`: The CFG scale (0 - 20), defaults to 10.
-        - `--denoisestrength`: The denoise strength (0.0 - 1.0), defaults to 0.5.
-        - `--seed`: The seed to use.
+    #     **Flags**
+    #     - `--negative`: What you don't want the bot to include, defaults to nothing.
+    #     - `--cfgscale`: The CFG scale (0 - 20), defaults to 10.
+    #     - `--denoisestrength`: The denoise strength (0.0 - 1.0), defaults to 0.5.
+    #     - `--seed`: The seed to use.
 
-        Powered by [Nemu's Waifu Generator](https://waifus.nemusona.com)
-        """
-        prompt = " ".join(prompt)
-        if not prompt:
-            await ctx.reply("You need to provide a prompt.")
-            return
-        if match := re.match(r"https://danbooru\.donmai\.us/posts/(\d+)", prompt):
-            post_id = match.group(1)
-            prompt, error = await self._get_danbooru_tags(post_id)
-            if error:
-                await ctx.send(error)
-                return
-        result = await self.generate_ai_image(ctx, model, prompt, flags)
-        if not result:
-            return
-        seed, file = result
-        embed = discord.Embed(color=ctx.embed_color, title=f"Seed: {seed}")
-        view = FumoView(timeout=60.0)
-        view.add_item(RegenerateButton(self.bot, model, prompt, flags))
-        view.add_item(NEMU_BUTTON)
-        view.author = ctx.author
-        view.message = await ctx.reply(file=file, embed=embed, view=view)
+    #     Powered by [Nemu's Waifu Generator](https://waifus.nemusona.com)
+    #     """
+    #     prompt = " ".join(prompt)
+    #     if not prompt:
+    #         await ctx.reply("You need to provide a prompt.")
+    #         return
+    #     if match := re.match(r"https://danbooru\.donmai\.us/posts/(\d+)", prompt):
+    #         post_id = match.group(1)
+    #         prompt, error = await self._get_danbooru_tags(post_id)
+    #         if error:
+    #             await ctx.send(error)
+    #             return
+    #     result = await self._generate_ai_image(ctx, model, prompt, flags)
+    #     if not result:
+    #         return
+    #     seed, file = result
+    #     embed = discord.Embed(color=ctx.embed_color, title=f"Seed: {seed}")
+    #     view = FumoView(timeout=60.0)
+    #     view.add_item(RegenerateButton(self.bot, model, prompt, flags))
+    #     view.add_item(NEMU_BUTTON)
+    #     view.author = ctx.author
+    #     view.message = await ctx.reply(file=file, embed=embed, view=view)
 
-    @generate.autocomplete("model")
-    async def model_autocomplete(
-        self, interaction: discord.Interaction, current: str
-    ) -> list[app_commands.Choice[str]]:
-        if self.bot.is_blacklisted(interaction.user.id):
-            return []
+    # @generate.autocomplete("model")
+    # async def model_autocomplete(
+    #     self, interaction: discord.Interaction, current: str
+    # ) -> list[app_commands.Choice[str]]:
+    #     if self.bot.is_blacklisted(interaction.user.id):
+    #         return []
 
-        choices = [
-            app_commands.Choice(name="Anything V4.5", value="anything"),
-            app_commands.Choice(name="AOM3", value="aom"),
-            app_commands.Choice(name="Nemu (WIP)", value="nemu"),
-        ]
-        if current == "":
-            return choices
-        current = current.lower()
-        return [c for c in choices if current in c.name.lower()]
+    #     choices = [
+    #         app_commands.Choice(name="Anything V4.5", value="anything"),
+    #         app_commands.Choice(name="AOM3", value="aom"),
+    #         app_commands.Choice(name="Nemu (WIP)", value="nemu"),
+    #     ]
+    #     if current == "":
+    #         return choices
+    #     current = current.lower()
+    #     return [c for c in choices if current in c.name.lower()]
 
     async def _get_danbooru_tags(self, post_id: int) -> tuple[str | None, str | None]:
         """Returns the tags and the error, if there's any."""
@@ -103,7 +103,7 @@ class Imgen(commands.Cog):
             else:
                 return None, "Something went wrong when extracting tags."
 
-    async def generate_ai_image(
+    async def _generate_ai_image(
         self,
         ctx: commands.Context,
         model: Literal["anything", "aom", "nemu"],
