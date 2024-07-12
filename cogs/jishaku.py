@@ -31,10 +31,10 @@ class Jishaku(FilesystemFeature, InvocationFeature, PythonFeature, RootCommand, 
         return discord.PartialEmoji(name="Jishaku", id=1174195607997521960)
 
     def cog_load(self) -> None:
-        self._log.info("Loaded %s", self.qualified_name)
+        self._log.debug("Loaded %s", self.qualified_name)
 
     def cog_unload(self) -> None:
-        self._log.info("Unloaded %s", self.qualified_name)
+        self._log.debug("Unloaded %s", self.qualified_name)
 
     @Feature.Command(parent="jsk", name="traceback", aliases=["tb"])
     async def jsk_traceback(self, ctx: commands.Context):
