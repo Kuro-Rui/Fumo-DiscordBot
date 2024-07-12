@@ -340,8 +340,9 @@ class Owner(commands.Cog):
         await view.wait()
         if view.result:
             embed.title = "Shutting Down..."
-            await view.message.edit(embed=embed)
-            await self.bot.close()
+            async with self.bot.lock:
+                await view.message.edit(embed=embed)
+                await self.bot.close()
         else:
             embed.title = "Cancelling..."
             await view.message.edit(embed=embed)
