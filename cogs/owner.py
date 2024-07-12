@@ -1,4 +1,3 @@
-import asyncio
 import importlib
 import sys
 import traceback
@@ -20,7 +19,6 @@ class Owner(commands.Cog):
     """Owner-only commands."""
 
     def __init__(self, bot: FumoBot):
-        self.lock = asyncio.Lock()
         super().__init__(bot)
 
     @property
@@ -342,18 +340,9 @@ class Owner(commands.Cog):
     @commands.command(aliases=["die", "suicide"])
     async def shutdown(self, ctx: commands.Context):
         """Shuts the bot down."""
-        embed = discord.Embed(color=ctx.embed_color, title="Are you sure you want to shut down?")
-        view = ConfirmView()
-        await view.start(ctx, embed=embed)
-        await view.wait()
-        if view.result:
-            embed.title = "Shutting Down..."
-            async with self.lock:
-                await view.message.edit(embed=embed)
-            await self.bot.close()
-        else:
-            embed.title = "Cancelling..."
-            await view.message.edit(embed=embed)
+        embed = discord.Embed(color=ctx.embed_color, title="Shutting Down...")
+        await ctx.send(embed=embed)
+        await self.bot.close()
 
 
 async def setup(bot: FumoBot):
