@@ -158,7 +158,7 @@ class FumoBot(commands.AutoShardedBot):
             if retry_after:
                 self._spam_count[author.id] += 1
                 if self._spam_count[author.id] >= 5:
-                    self.add_to_blacklist(author.id)
+                    self.add_to_blacklist(author)
                     del self._spam_count[author.id]
                     log.warning("Blacklisted %s (%d) for spamming commands.", author, author.id)
                 else:

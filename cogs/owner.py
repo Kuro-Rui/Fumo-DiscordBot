@@ -66,7 +66,7 @@ class Owner(commands.Cog):
         for user in users:
             if self.bot.is_blacklisted(user):
                 continue
-            self.bot.add_to_blacklist(user.id)
+            self.bot.add_to_blacklist(user)
             success.append(user)
         if not success:
             await ctx.cross()
@@ -85,7 +85,7 @@ class Owner(commands.Cog):
         for user in users:
             if not self.bot.is_blacklisted(user):
                 continue
-            self.bot.remove_from_blacklist(user.id)
+            self.bot.remove_from_blacklist(user)
             success.append(user)
         if not success:
             await ctx.cross()
