@@ -59,6 +59,9 @@ class Owner(commands.Cog):
     @blacklist.command(name="add")
     async def blacklist_add(self, ctx: commands.Context, *users: discord.User):
         """Blacklist users from using the bot."""
+        if not users:
+            await ctx.send_help(ctx.command)
+            return
         success = []
         for user in users:
             if user in self.bot.blacklist:
@@ -75,6 +78,9 @@ class Owner(commands.Cog):
     @commands.is_owner()
     async def blacklist_remove(self, ctx: commands.Context, *users: discord.User):
         """Unblacklist users from using the bot."""
+        if not users:
+            await ctx.send_help(ctx.command)
+            return
         success = []
         for user in users:
             if user not in self.bot.blacklist:
