@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import sys
 import traceback
@@ -19,6 +20,7 @@ class Owner(commands.Cog):
     """Owner-only commands."""
 
     def __init__(self, bot: FumoBot):
+        self.lock = asyncio.Lock()
         super().__init__(bot)
 
     @property
@@ -340,7 +342,7 @@ class Owner(commands.Cog):
         await view.wait()
         if view.result:
             embed.title = "Shutting Down..."
-            async with self.bot.lock:
+            async with self.lock:
                 await view.message.edit(embed=embed)
                 await self.bot.close()
         else:
