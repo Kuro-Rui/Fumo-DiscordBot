@@ -24,10 +24,10 @@ class Cog(commands.Cog):
         raise NotImplementedError()
 
     def cog_load(self) -> None:
-        self._log.info("Loaded %s", self.qualified_name)
+        self._log.debug("Loaded %s", self.qualified_name)
 
     def cog_unload(self) -> None:
-        self._log.info("Unloaded %s", self.qualified_name)
+        self._log.debug("Unloaded %s", self.qualified_name)
 
     @property
     def help(self) -> str | None:
